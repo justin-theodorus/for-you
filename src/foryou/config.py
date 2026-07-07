@@ -76,6 +76,17 @@ class Settings(BaseSettings):
         description="Default number of posts returned in a ranked feed.",
     )
 
+    # --- Diversification (plan.md §5). MMR trades relevance for dissimilarity from the
+    # already-selected feed; the live preference slider (plan.md §4) overrides it later. ---
+    mmr_lambda: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="Relevance weight for MMR diversification in [0,1]. 1.0 = pure "
+        "relevance (no diversification); lower = more topical diversity / exploration. "
+        "Overridable per request; the live preference slider (plan.md §4) sets it later.",
+    )
+
     # --- Scoring model (plan.md §3). The artifact is produced offline by `make train`
     # and read on the serving path; a missing file falls back to the heuristic scorer. ---
     scoring_model_path: Path = Field(

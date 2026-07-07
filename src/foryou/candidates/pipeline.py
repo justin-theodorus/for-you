@@ -19,7 +19,7 @@ from foryou.candidates.hydrator import PostHydrator
 from foryou.candidates.impressions import ImpressionLogger
 from foryou.candidates.protocols import Filter, Hydrator, Scorer, Selector, SideEffect, Source
 from foryou.candidates.scoring import default_scorer
-from foryou.candidates.selection import TopKSelector
+from foryou.candidates.selection import MMRSelector
 from foryou.candidates.sources import InNetworkSource, OutOfNetworkSource, TrendingSource
 from foryou.candidates.types import Candidate, RankingContext
 from foryou.config import settings
@@ -60,7 +60,7 @@ def default_pipeline() -> CandidatePipeline:
         hydrator=PostHydrator(),
         filters=(SelfFilter(), BlockMuteFilter()),
         scorer=default_scorer(),
-        selector=TopKSelector(),
+        selector=MMRSelector(),
         side_effects=(ImpressionLogger(),),
     )
 
@@ -73,6 +73,7 @@ async def rank_feed(
     request_id: str | None = None,
     limit: int = settings.feed_limit,
     weight_vector: dict[str, float] | None = None,
+    mmr_lambda: float | None = None,
     pipeline: CandidatePipeline | None = None,
 ) -> list[Candidate]:
     """Build the context and run the pipeline — the single feed-ranking entrypoint."""
@@ -83,5 +84,6 @@ async def rank_feed(
         request_id=request_id,
         limit=limit,
         weight_vector=weight_vector,
+        mmr_lambda=mmr_lambda,
     )
     return await (pipeline or default_pipeline()).run(session, ctx)

@@ -69,6 +69,7 @@ async def build_context(
     request_id: str | None = None,
     limit: int = settings.feed_limit,
     weight_vector: dict[str, float] | None = None,
+    mmr_lambda: float | None = None,
 ) -> RankingContext:
     """Assemble the immutable context for one ranking request."""
     resolved_now = now or await resolve_now(session)
@@ -89,4 +90,5 @@ async def build_context(
         followee_ids=followee_ids,
         user_interest_vector=await _interest_vector(session, user_id),
         weight_vector=weight_vector or dict(DEFAULT_WEIGHT_VECTOR),
+        mmr_lambda=mmr_lambda,
     )

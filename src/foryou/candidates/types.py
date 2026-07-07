@@ -124,3 +124,6 @@ class RankingContext:
     # Stamped by the pipeline from the active scorer so the impression log records which
     # model produced the scores. None until the pipeline sets it (e.g. bare test contexts).
     scoring_model_version: str | None = None
+    # Per-request MMR relevance weight (plan.md §5). None -> the selector's configured
+    # default; the live preference slider (plan.md §4) will populate this.
+    mmr_lambda: float | None = None
