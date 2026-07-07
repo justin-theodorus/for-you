@@ -42,5 +42,37 @@ class Settings(BaseSettings):
         description="Posts encoded and upserted per batch during embedding backfill.",
     )
 
+    # --- Candidate pipeline knobs (plan.md §2). Per-source caps bound how many raw
+    # candidates each source contributes before hydration/scoring. ---
+    in_network_lookback_days: int = Field(
+        default=14,
+        description="In-network source only considers followee posts this recent.",
+    )
+    in_network_limit: int = Field(
+        default=200,
+        description="Max in-network (followee-recency) candidates per request.",
+    )
+    out_of_network_limit: int = Field(
+        default=200,
+        description="Max out-of-network (embedding-similarity) candidates per request.",
+    )
+    trending_window_hours: int = Field(
+        default=48,
+        description="Trending source counts engagements within this window off the "
+        "reference clock.",
+    )
+    trending_limit: int = Field(
+        default=100,
+        description="Max trending (engagement-velocity) candidates per request.",
+    )
+    recency_half_life_hours: float = Field(
+        default=24.0,
+        description="Half-life of the recency decay feature (hours).",
+    )
+    feed_limit: int = Field(
+        default=50,
+        description="Default number of posts returned in a ranked feed.",
+    )
+
 
 settings = Settings()
