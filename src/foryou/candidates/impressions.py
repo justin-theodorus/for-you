@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from foryou.candidates.preferences import NEUTRAL
 from foryou.candidates.types import Candidate, RankingContext
 from foryou.db.models import FeedImpression
 
@@ -38,6 +39,8 @@ class ImpressionLogger:
                         else {}
                     ),
                     weight_vector=dict(ctx.weight_vector),
+                    preferences=(ctx.preferences or NEUTRAL).as_dict(),
+                    preference_multiplier=candidate.preference_multiplier,
                     mmr_penalty=candidate.mmr_penalty,
                     final_score=candidate.score,
                     rank=candidate.rank,

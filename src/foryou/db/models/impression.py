@@ -39,6 +39,12 @@ class FeedImpression(Base):
     weight_vector: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default="{}"
     )
+    # The active preference sliders (plan.md §4) and the resulting post-scoring multiplier,
+    # so the audit panel can attribute the preference contribution with no re-derivation.
+    preferences: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default="{}"
+    )
+    preference_multiplier: Mapped[float | None] = mapped_column(Float, nullable=True)
     mmr_penalty: Mapped[float | None] = mapped_column(Float, nullable=True)
     final_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     rank: Mapped[int | None] = mapped_column(Integer, nullable=True)
