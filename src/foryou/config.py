@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -72,6 +74,21 @@ class Settings(BaseSettings):
     feed_limit: int = Field(
         default=50,
         description="Default number of posts returned in a ranked feed.",
+    )
+
+    # --- Scoring model (plan.md §3). The artifact is produced offline by `make train`
+    # and read on the serving path; a missing file falls back to the heuristic scorer. ---
+    scoring_model_path: Path = Field(
+        default=Path("models/scoring_model.json"),
+        description="Where the trained scoring model JSON artifact is written / loaded from.",
+    )
+    scoring_negative_ratio: float = Field(
+        default=3.0,
+        description="Sampled non-engaged (user, post) negatives per positive during training.",
+    )
+    scoring_seed: int = Field(
+        default=42,
+        description="Seed for deterministic negative sampling in the training set.",
     )
 
 
