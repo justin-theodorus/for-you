@@ -24,7 +24,14 @@ async def session() -> AsyncIterator[AsyncSession]:
     try:
         async with engine.connect() as conn:
             trans = await conn.begin()
-            db = AsyncSession(bind=conn, expire_on_commit=False)
+            # create_savepoint so code under test that calls commit() (e.g. the
+            # per-batch embedding backfill) releases a SAVEPOINT rather than the
+            # outer transaction, keeping the rollback-on-teardown isolation intact.
+            db = AsyncSession(
+                bind=conn,
+                expire_on_commit=False,
+                join_transaction_mode="create_savepoint",
+            )
             try:
                 yield db
             finally:
