@@ -13,7 +13,7 @@ ARGS ?=
 .DEFAULT_GOAL := help
 
 .PHONY: help setup build up down reset migrate revision migrate-check \
-	smoke seed embeddings train feed test test-clean lint format typecheck check shell psql
+	smoke seed embeddings centroids train feed test test-clean lint format typecheck check shell psql
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -58,6 +58,9 @@ seed: ## Seed a synthetic world: make seed ARGS="--wipe --seed 7"
 
 embeddings: ## Generate post embeddings: make embeddings ARGS="--limit 20 --regenerate"
 	$(APP) python scripts/generate_embeddings.py $(ARGS)
+
+centroids: ## Backfill topic centroids (run after embeddings) for the topic sliders
+	$(APP) python scripts/generate_topic_centroids.py $(ARGS)
 
 train: ## Train the scoring model: make train ARGS="--negative-ratio 3 --users all"
 	$(APP) python scripts/train_scorer.py $(ARGS)
