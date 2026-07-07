@@ -32,6 +32,15 @@ class Settings(BaseSettings):
         default=False,
         description="Echo emitted SQL for debugging.",
     )
+    embedding_model_name: str = Field(
+        default="all-MiniLM-L6-v2",
+        description="sentence-transformers model used to embed posts; also stored as "
+        "post_embeddings.model_version. Bump when weights/preprocessing change.",
+    )
+    embedding_batch_size: int = Field(
+        default=128,
+        description="Posts encoded and upserted per batch during embedding backfill.",
+    )
 
 
 settings = Settings()
