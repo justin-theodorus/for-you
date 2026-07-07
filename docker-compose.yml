@@ -25,7 +25,10 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+      # Persist the downloaded sentence-transformers model across `run --rm` (HF_HOME).
+      - hf-cache:/opt/hf-cache
     working_dir: /app
 
 volumes:
   pgdata:
+  hf-cache:

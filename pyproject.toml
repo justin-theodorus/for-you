@@ -11,6 +11,10 @@ dependencies = [
     "alembic>=1.14.0",
     "pydantic-settings>=2.7.0",
     "psycopg[binary]>=3.2.3",
+    # Local embedding model (all-MiniLM-L6-v2, 384-dim). torch is installed as the
+    # CPU-only build in Docker via `uv pip install --torch-backend=cpu` (see Dockerfile).
+    "sentence-transformers>=3.0.0",
+    "torch>=2.2.0",
 ]
 
 [project.optional-dependencies]
@@ -44,7 +48,7 @@ strict = true
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["pgvector.*"]
+module = ["pgvector.*", "sentence_transformers.*", "torch.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
