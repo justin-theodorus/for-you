@@ -226,6 +226,9 @@ def _build_participants(config: SeedConfig, rng: random.Random) -> list[_Partici
             handle=f"reader_{j}",
             display_name=f"Reader {j}",
             is_persona=False,
+            # Persist reader interests so build_context can derive user_topics —
+            # otherwise topic_match is 0 for every reader (the feed's audience).
+            persona_config={"topics": topics},
         )
         participants.append(_Participant(user, topics))
     return participants
