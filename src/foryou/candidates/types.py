@@ -121,3 +121,6 @@ class RankingContext:
     followee_ids: frozenset[uuid.UUID]
     user_interest_vector: tuple[float, ...] | None
     weight_vector: Mapping[str, float]
+    # Stamped by the pipeline from the active scorer so the impression log records which
+    # model produced the scores. None until the pipeline sets it (e.g. bare test contexts).
+    scoring_model_version: str | None = None

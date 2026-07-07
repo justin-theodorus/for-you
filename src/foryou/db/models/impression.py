@@ -42,6 +42,9 @@ class FeedImpression(Base):
     mmr_penalty: Mapped[float | None] = mapped_column(Float, nullable=True)
     final_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     rank: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Which scorer produced final_score/action_scores, so the audit panel stays correct
+    # across model retrains ("heuristic" for the fallback; the model_version otherwise).
+    scoring_model_version: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime.datetime] = created_at()
 

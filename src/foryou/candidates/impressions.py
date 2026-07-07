@@ -41,6 +41,7 @@ class ImpressionLogger:
                     mmr_penalty=candidate.mmr_penalty,
                     final_score=candidate.score,
                     rank=candidate.rank,
+                    scoring_model_version=ctx.scoring_model_version,
                 )
                 for candidate in candidates
             ]
