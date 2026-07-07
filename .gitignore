@@ -11,6 +11,10 @@ venv/
 # Environment
 .env
 
+# Trained model artifacts (reproduce with `make train`)
+# Anchored to repo root so it doesn't also ignore src/foryou/db/models.
+/models/
+
 # uv
 # (uv.lock is committed on purpose)
 
