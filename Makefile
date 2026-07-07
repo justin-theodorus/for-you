@@ -13,7 +13,7 @@ ARGS ?=
 .DEFAULT_GOAL := help
 
 .PHONY: help setup build up down reset migrate revision migrate-check \
-	smoke embeddings test lint format typecheck check shell psql
+	smoke seed embeddings test lint format typecheck check shell psql
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -52,6 +52,9 @@ migrate-check: ## Verify models match the DB (no drift)
 
 smoke: ## Run the end-to-end data-layer smoke test
 	$(APP) python scripts/verify_smoke.py
+
+seed: ## Seed a synthetic world: make seed ARGS="--wipe --seed 7"
+	$(APP) python scripts/seed_world.py $(ARGS)
 
 embeddings: ## Generate post embeddings: make embeddings ARGS="--limit 20 --regenerate"
 	$(APP) python scripts/generate_embeddings.py $(ARGS)
