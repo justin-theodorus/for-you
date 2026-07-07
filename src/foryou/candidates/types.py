@@ -12,6 +12,10 @@ import enum
 import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from foryou.candidates.preferences import Preferences
 
 
 class SourceName(enum.StrEnum):
@@ -100,6 +104,9 @@ class Candidate:
     # Scored / selected.
     action_scores: ActionScores | None = None
     score: float | None = None
+    # Post-scoring preference overlay applied to the model score (plan.md §4); 1.0 = no
+    # effect. Persisted so the "Why this post?" panel shows the preference contribution.
+    preference_multiplier: float | None = None
     mmr_penalty: float | None = None
     rank: int | None = None
 
@@ -127,3 +134,17 @@ class RankingContext:
     # Per-request MMR relevance weight (plan.md §5). None -> the selector's configured
     # default; the live preference slider (plan.md §4) will populate this.
     mmr_lambda: float | None = None
+
+    # --- Preference layer (plan.md §4). Resolved from the request's Preferences by
+    # build_context; every field defaults to a no-op so a neutral request and bare test
+    # contexts reproduce the untuned feed. ---
+    # Recency slider -> recency-decay half-life (hours). None -> the stage's own default.
+    half_life_hours: float | None = None
+    # Friends/global slider -> per-source score multiplier. None -> no source-mix boost.
+    source_weights: Mapping[SourceName, float] | None = None
+    # Niche/viral slider in [-1, 1]; 0.0 -> no engagement-velocity bias.
+    velocity_bias: float = 0.0
+    # Topic sliders -> slider-weighted blend of topic centroids. None -> no topic boost.
+    topic_query_vector: tuple[float, ...] | None = None
+    # The raw sliders, snapshotted for the impression audit log. None -> neutral.
+    preferences: Preferences | None = None

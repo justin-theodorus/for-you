@@ -39,6 +39,8 @@ class InNetworkSource:
     async def fetch(self, session: AsyncSession, ctx: RankingContext) -> list[Candidate]:
         if not ctx.followee_ids:
             return []
+        # The recency slider (plan.md §4) overrides the configured half-life per request.
+        half_life_hours = ctx.half_life_hours or self._half_life_hours
         window_start = ctx.now - datetime.timedelta(days=self._lookback_days)
         rows = (
             await session.execute(
@@ -58,7 +60,7 @@ class InNetworkSource:
                 sources=(
                     SourceTag(
                         SourceName.IN_NETWORK,
-                        recency_decay(created_at, ctx.now, self._half_life_hours),
+                        recency_decay(created_at, ctx.now, half_life_hours),
                     ),
                 ),
             )
@@ -110,6 +112,7 @@ class OutOfNetworkSource:
     async def _recency_fallback(
         self, session: AsyncSession, ctx: RankingContext, excluded: frozenset[uuid.UUID]
     ) -> list[Candidate]:
+        half_life_hours = ctx.half_life_hours or self._half_life_hours
         rows = (
             await session.execute(
                 select(Post.id, Post.created_at)
@@ -124,7 +127,7 @@ class OutOfNetworkSource:
                 sources=(
                     SourceTag(
                         SourceName.OUT_OF_NETWORK,
-                        recency_decay(created_at, ctx.now, self._half_life_hours),
+                        recency_decay(created_at, ctx.now, half_life_hours),
                     ),
                 ),
             )

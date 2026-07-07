@@ -2,9 +2,10 @@
 
 Two implementations share the seam. :class:`HeuristicScorer` is the dependency-free
 placeholder (fixed logistic combinations). :class:`TrainedScorer` (plan.md §3) loads a
-trained artifact and predicts — pure Python at request time, no sklearn. Both end with the
-identical :func:`collapse_score`, the weighted sum over the request's weight vector that is
-the preference-layer seam (plan.md §4).
+trained artifact and predicts — pure Python at request time, no sklearn. Both end in the
+shared :func:`_finalize`: :func:`collapse_score` (the weighted sum over the request's
+weight vector) times :func:`preference_multiplier` (the plan.md §4 preference overlay).
+A neutral request leaves the multiplier at 1.0, so the score is unchanged.
 
 ``default_scorer`` picks the trained model when its artifact exists and otherwise falls
 back to the heuristic with a warning, so the feed ranks even before a model is trained.
@@ -18,6 +19,7 @@ from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 
+from foryou.candidates.hydrator import cosine_similarity
 from foryou.candidates.protocols import Scorer
 from foryou.candidates.types import ActionScores, Candidate, RankingContext
 from foryou.config import settings
@@ -26,6 +28,12 @@ from foryou.scoring.model import ScoringModel, features_to_vector
 logger = logging.getLogger(__name__)
 
 HEURISTIC_MODEL_VERSION = "heuristic"
+
+# Softens the (unbounded) log1p engagement-velocity feature into a bounded tanh factor so
+# the niche/viral multiplier stays in a sane range; ~log1p of 20 engagements.
+VELOCITY_SCALE = 3.0
+# Peak topic boost/penalty at cosine = +/-1 (multiplier in [1 - TOPIC_STRENGTH, 1 + ...]).
+TOPIC_STRENGTH = 0.5
 
 
 def _sigmoid(x: float) -> float:
@@ -40,9 +48,47 @@ def collapse_score(actions: ActionScores, weight_vector: Mapping[str, float]) ->
     )
 
 
+def preference_multiplier(candidate: Candidate, ctx: RankingContext) -> float:
+    """Post-scoring preference overlay (plan.md §4); 1.0 when the request is neutral.
+
+    Combines the friends/global source mix, the niche/viral velocity bias, and the topic
+    sliders into one multiplicative factor on the model score. Each term is skipped when
+    its knob is a no-op, so a neutral context returns exactly 1.0 and leaves the score
+    untouched (keeping the §3 model valid with no retrain).
+    """
+    features = candidate.features
+    assert features is not None  # scorer runs after hydration
+    multiplier = 1.0
+    if ctx.source_weights:
+        # A candidate merged from several sources keeps every SourceTag; the strongest
+        # surfacing reason wins.
+        multiplier *= max(
+            ctx.source_weights.get(tag.source, 1.0) for tag in candidate.sources
+        )
+    if ctx.velocity_bias:
+        multiplier *= 1.0 + ctx.velocity_bias * math.tanh(
+            features.engagement_velocity / VELOCITY_SCALE
+        )
+    if ctx.topic_query_vector is not None:
+        multiplier *= 1.0 + TOPIC_STRENGTH * cosine_similarity(
+            candidate.embedding, ctx.topic_query_vector
+        )
+    return max(0.0, multiplier)
+
+
 def _require_features(candidate: Candidate) -> None:
     if candidate.features is None:
         raise ValueError("candidate must be hydrated before scoring")
+
+
+def _finalize(candidate: Candidate, actions: ActionScores, ctx: RankingContext) -> Candidate:
+    """Collapse to one score, apply the preference overlay, and record both — the single
+    score-producing site shared by both scorers."""
+    multiplier = preference_multiplier(candidate, ctx)
+    score = collapse_score(actions, ctx.weight_vector) * multiplier
+    return replace(
+        candidate, action_scores=actions, score=score, preference_multiplier=multiplier
+    )
 
 
 class HeuristicScorer:
@@ -69,8 +115,7 @@ class HeuristicScorer:
             quote=_sigmoid(0.9 * features.topic_match + 0.3 * features.author_affinity),
             dwell=_sigmoid(1.0 * features.recency + 0.7 * features.embedding_similarity),
         )
-        score = collapse_score(actions, ctx.weight_vector)
-        return replace(candidate, action_scores=actions, score=score)
+        return _finalize(candidate, actions, ctx)
 
 
 class TrainedScorer:
@@ -107,8 +152,7 @@ class TrainedScorer:
 
         probabilities = model.predict_proba(features_to_vector(features))
         actions = ActionScores(**probabilities)
-        score = collapse_score(actions, ctx.weight_vector)
-        return replace(candidate, action_scores=actions, score=score)
+        return _finalize(candidate, actions, ctx)
 
 
 def default_scorer() -> Scorer:

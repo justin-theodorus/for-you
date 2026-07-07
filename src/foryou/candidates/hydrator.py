@@ -93,10 +93,12 @@ class PostHydrator:
         self, post: Post, embedding: tuple[float, ...] | None, ctx: RankingContext
     ) -> Features:
         counters = post.like_count + post.reply_count + post.repost_count + post.quote_count
+        # The recency slider (plan.md §4) overrides the configured half-life per request.
+        half_life_hours = ctx.half_life_hours or self._half_life_hours
         return Features(
             author_affinity=1.0 if post.author_id in ctx.followee_ids else 0.0,
             topic_match=_topic_match(tuple(post.topics), ctx.user_topics),
-            recency=recency_decay(post.created_at, ctx.now, self._half_life_hours),
+            recency=recency_decay(post.created_at, ctx.now, half_life_hours),
             engagement_velocity=math.log1p(counters),
             embedding_similarity=cosine_similarity(embedding, ctx.user_interest_vector),
         )
