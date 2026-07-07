@@ -116,6 +116,7 @@ def make_context(
     topics: tuple[str, ...] = (),
     interest: tuple[float, ...] | None = None,
     limit: int = 50,
+    mmr_lambda: float | None = None,
 ) -> RankingContext:
     """Construct a context directly for stage-level tests (no DB round-trip)."""
     return RankingContext(
@@ -127,6 +128,7 @@ def make_context(
         followee_ids=followee_ids,
         user_interest_vector=interest,
         weight_vector=dict(DEFAULT_WEIGHT_VECTOR),
+        mmr_lambda=mmr_lambda,
     )
 
 

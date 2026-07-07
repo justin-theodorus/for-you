@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from foryou.candidates.context import build_context
@@ -110,9 +110,17 @@ async def test_default_pipeline_ranks_a_seeded_world(session: AsyncSession) -> N
     assert all(candidate.features is not None for candidate in result)
     assert all(candidate.sources for candidate in result)
     assert [candidate.rank for candidate in result] == list(range(len(result)))
-    # The impression logger persisted exactly the selected feed.
-    count = await session.scalar(select(func.count()).select_from(FeedImpression))
-    assert count == len(result)
+    # MMR selection populated the diversity penalty (rank 0 is never penalized).
+    assert all(candidate.mmr_penalty is not None for candidate in result)
+    assert result[0].mmr_penalty == 0.0
+    # The impression logger persisted exactly the selected feed, penalties included.
+    impressions = (
+        await session.scalars(
+            select(FeedImpression).order_by(FeedImpression.rank)
+        )
+    ).all()
+    assert len(impressions) == len(result)
+    assert all(row.mmr_penalty is not None for row in impressions)
 
 
 async def test_pipeline_is_deterministic_for_a_fixed_world(session: AsyncSession) -> None:
