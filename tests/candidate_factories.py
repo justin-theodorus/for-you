@@ -8,6 +8,7 @@ from __future__ import annotations
 import datetime
 import math
 import uuid
+from collections.abc import Mapping
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -117,6 +118,10 @@ def make_context(
     interest: tuple[float, ...] | None = None,
     limit: int = 50,
     mmr_lambda: float | None = None,
+    half_life_hours: float | None = None,
+    source_weights: Mapping[SourceName, float] | None = None,
+    velocity_bias: float = 0.0,
+    topic_query_vector: tuple[float, ...] | None = None,
 ) -> RankingContext:
     """Construct a context directly for stage-level tests (no DB round-trip)."""
     return RankingContext(
@@ -129,6 +134,10 @@ def make_context(
         user_interest_vector=interest,
         weight_vector=dict(DEFAULT_WEIGHT_VECTOR),
         mmr_lambda=mmr_lambda,
+        half_life_hours=half_life_hours,
+        source_weights=source_weights,
+        velocity_bias=velocity_bias,
+        topic_query_vector=topic_query_vector,
     )
 
 
