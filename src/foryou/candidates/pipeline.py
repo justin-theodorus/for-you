@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import datetime
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +18,7 @@ from foryou.candidates.filters import BlockMuteFilter, SelfFilter, merge_candida
 from foryou.candidates.hydrator import PostHydrator
 from foryou.candidates.impressions import ImpressionLogger
 from foryou.candidates.protocols import Filter, Hydrator, Scorer, Selector, SideEffect, Source
-from foryou.candidates.scoring import HeuristicScorer
+from foryou.candidates.scoring import default_scorer
 from foryou.candidates.selection import TopKSelector
 from foryou.candidates.sources import InNetworkSource, OutOfNetworkSource, TrendingSource
 from foryou.candidates.types import Candidate, RankingContext
@@ -37,6 +37,9 @@ class CandidatePipeline:
     side_effects: tuple[SideEffect, ...]
 
     async def run(self, session: AsyncSession, ctx: RankingContext) -> list[Candidate]:
+        # Stamp the active scorer's version so the impression log is attributable across
+        # retrains. getattr keeps arbitrary Scorer impls (e.g. test fakes) valid.
+        ctx = replace(ctx, scoring_model_version=getattr(self.scorer, "model_version", None))
         # Sources share one session -> run sequentially (AsyncSession isn't concurrency-safe).
         gathered = [await source.fetch(session, ctx) for source in self.sources]
         candidates = merge_candidates(gathered)
@@ -56,7 +59,7 @@ def default_pipeline() -> CandidatePipeline:
         sources=(InNetworkSource(), OutOfNetworkSource(), TrendingSource()),
         hydrator=PostHydrator(),
         filters=(SelfFilter(), BlockMuteFilter()),
-        scorer=HeuristicScorer(),
+        scorer=default_scorer(),
         selector=TopKSelector(),
         side_effects=(ImpressionLogger(),),
     )
