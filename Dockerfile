@@ -1,5 +1,5 @@
-# Python tooling / app container. Runs Alembic migrations, seed and verify
-# scripts now; hosts the FastAPI ranking service in a later slice.
+# Python tooling / app container. Runs Alembic migrations, seed/verify scripts, and
+# hosts the FastAPI ranking service (foryou.web.app, served by the `api` compose service).
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 ENV PYTHONUNBUFFERED=1 \
@@ -17,7 +17,7 @@ WORKDIR /app
 # build; the `uv pip` interface ignores [tool.uv.sources], so this flag is the lever.
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN uv pip install --system --torch-backend=cpu --editable ".[dev,train]"
+RUN uv pip install --system --torch-backend=cpu --editable ".[dev,train,web]"
 
 # Source, migrations, scripts and tests are bind-mounted by compose at runtime.
 CMD ["bash"]

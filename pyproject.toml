@@ -23,11 +23,19 @@ dev = [
     "pytest-asyncio>=0.25.0",
     "ruff>=0.8.0",
     "mypy>=1.14.0",
+    # ASGI test client for the web layer (httpx AsyncClient + ASGITransport).
+    "httpx>=0.28.0",
 ]
 # Offline training only (plan.md §3). Kept out of the runtime deps so the serving path
 # stays sklearn-free — TrainedScorer reads the JSON artifact and predicts in pure Python.
 train = [
     "scikit-learn>=1.5",
+]
+# Web layer (plan.md §9). FastAPI ranking service over the candidate pipeline; installed
+# in Docker alongside dev/train (see Dockerfile). uvicorn[standard] pulls the reload watcher.
+web = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
 ]
 
 [build-system]

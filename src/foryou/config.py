@@ -102,5 +102,12 @@ class Settings(BaseSettings):
         description="Seed for deterministic negative sampling in the training set.",
     )
 
+    # --- Web layer (plan.md §9). CORS origins the FastAPI ranking service accepts; the
+    # Vite dev server runs on 5173. Set CORS_ORIGINS in .env as a JSON array to override. ---
+    cors_origins: list[str] = Field(
+        default=["http://localhost:5173", "http://127.0.0.1:5173"],
+        description="Allowed browser origins for the ranking API (JSON array in env).",
+    )
+
 
 settings = Settings()
