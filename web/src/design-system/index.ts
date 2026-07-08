@@ -9,6 +9,7 @@ import "./tokens.css";
 export { Avatar, Meter, Panel, Pill, SourceBadge, Stat } from "./primitives";
 export { ActionScoreBars } from "./ActionScoreBars";
 export { FeedCard } from "./FeedCard";
+export { ReaderFeedCard } from "./ReaderFeedCard";
 export { WhyThisPostPanel } from "./WhyThisPostPanel";
 export { PreferenceRail } from "./PreferenceRail";
 export { PipelinePanel } from "./PipelinePanel";

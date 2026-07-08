@@ -1,45 +1,33 @@
 .card {
   display: flex;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  gap: var(--space-4);
+  padding: 18px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
   cursor: pointer;
+  box-shadow: var(--shadow);
   transition:
-    border-color var(--dur) var(--ease),
-    background var(--dur) var(--ease),
-    transform var(--dur) var(--ease);
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 .card:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-2);
+  border-color: var(--line-strong);
 }
 .selected {
+  background: var(--accent-soft);
   border-color: var(--accent);
-  box-shadow: var(--shadow-glow);
 }
 
 .rank {
   flex: none;
-  width: 34px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding-top: 2px;
-}
-.rankNum {
-  font-family: var(--font-mono);
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  color: var(--text-dim);
-  line-height: 1;
-}
-.rankScore {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--accent);
+  width: 22px;
+  text-align: right;
+  font-family: var(--font-serif);
+  font-size: 23px;
+  font-weight: 400;
+  color: var(--ink-dim);
+  line-height: 1.5;
 }
 
 .body {
@@ -47,86 +35,77 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
 }
 
 .head {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  align-items: flex-start;
+  gap: 10px;
 }
 .names {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 .displayName {
   font-weight: 600;
-  font-size: var(--fs-base);
+  font-size: 13.5px;
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .handle {
-  font-size: var(--fs-sm);
-  color: var(--text-dim);
+  font-size: 11.5px;
+  color: var(--ink-dim);
 }
-.persona {
+.score {
   margin-left: auto;
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  padding: 1px 8px;
+  flex: none;
+  text-align: right;
+  padding-left: 10px;
+}
+.scoreNum {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.scoreLabel {
+  display: block;
+  margin-top: 4px;
+  font-size: 8px;
 }
 
 .content {
+  margin-top: 10px;
   font-size: var(--fs-base);
-  color: var(--text);
+  color: var(--ink);
   line-height: 1.55;
+  text-wrap: pretty;
   word-break: break-word;
 }
 
 .footer {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 16px;
   flex-wrap: wrap;
-}
-.badges {
-  display: flex;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-}
-.counters {
-  margin-left: auto;
-  display: flex;
-  gap: var(--space-3);
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
-  font-family: var(--font-mono);
+  margin-top: 13px;
 }
 .mult {
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  padding: 1px 7px;
-  border-radius: var(--radius-pill);
 }
 .multUp {
   color: var(--positive);
-  background: color-mix(in srgb, var(--positive) 12%, transparent);
 }
 .multDown {
   color: var(--penalty);
-  background: color-mix(in srgb, var(--penalty) 12%, transparent);
 }
-.topics {
-  display: flex;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-}
-.topic {
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
+.counters {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--ink-dim);
 }

@@ -58,40 +58,51 @@ export function PipelinePanel({
             <span className={`${styles.rowLabel} ${row.dim ? styles.rowLabelDim : ""}`}>
               {row.label}
             </span>
-            <span
-              className={styles.bar}
-              style={{ width: `${(row.count / max) * 100}%`, background: row.color }}
-            />
+            <span className={styles.track}>
+              <span
+                className={styles.bar}
+                style={{ width: `${(row.count / max) * 100}%`, background: row.color }}
+              />
+            </span>
             <span className={styles.count}>{row.count}</span>
           </div>
         ))}
       </div>
 
       <div>
-        <div className={styles.mixHead}>Selected source mix</div>
+        <div className={`lbl ${styles.mixHead}`}>Selected source mix</div>
         <div className={styles.funnel}>
           {trace.source_mix.map((source) => (
             <div key={source.name} className={styles.row}>
-              <span className={styles.rowLabel}>{SOURCE_LABELS[source.name] ?? source.name}</span>
-              <span
-                className={styles.bar}
-                style={{
-                  width: `${(source.count / Math.max(trace.selected, 1)) * 100}%`,
-                  background: sourceColor(source.name),
-                }}
-              />
+              <span className={`${styles.rowLabel} ${styles.rowLabelDim}`}>
+                {SOURCE_LABELS[source.name] ?? source.name}
+              </span>
+              <span className={styles.track}>
+                <span
+                  className={styles.bar}
+                  style={{
+                    width: `${(source.count / Math.max(trace.selected, 1)) * 100}%`,
+                    background: sourceColor(source.name),
+                  }}
+                />
+              </span>
               <span className={styles.count}>{source.count}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div>
-        <div className={styles.statsHead}>Selected scores</div>
-        <div className={styles.stats}>
+      <div className={styles.stats}>
+        <div className={styles.statCard}>
           <Stat value={fixed(trace.score_stats.min, 2)} label="min" />
+        </div>
+        <div className={styles.statCard}>
           <Stat value={fixed(trace.score_stats.mean, 2)} label="mean" />
+        </div>
+        <div className={styles.statCard}>
           <Stat value={fixed(trace.score_stats.max, 2)} label="max" />
+        </div>
+        <div className={styles.statCard}>
           <Stat value={trace.diversified} label="diversified" />
         </div>
       </div>

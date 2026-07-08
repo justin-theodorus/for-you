@@ -1,7 +1,7 @@
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 20px;
 }
 
 .empty {
@@ -11,7 +11,7 @@
   gap: var(--space-2);
   padding: var(--space-6) var(--space-4);
   text-align: center;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   font-size: var(--fs-sm);
 }
 .emptyIcon {
@@ -22,83 +22,103 @@
 .postPeek {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  background: var(--surface-inset);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  gap: 9px;
+  padding: 13px 15px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
 }
 .postPeekHead {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
 }
 .postPeekHandle {
-  color: var(--text-dim);
+  font-weight: 400;
+  color: var(--ink-dim);
 }
 .postPeekText {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
+  font-size: 13px;
+  color: var(--ink-soft);
   line-height: 1.5;
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 11px;
 }
 .sectionTitle {
-  font-size: var(--fs-xs);
+  font-size: 10.5px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 .badges {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: 16px;
 }
 
 .formula {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
 }
 .formulaRow {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  font-size: var(--fs-sm);
+  padding: 9px 13px;
+  font-size: 12.5px;
+}
+.formulaRow + .formulaRow {
+  border-top: 1px solid var(--line-soft);
 }
 .formulaRow span:first-child {
-  color: var(--text-muted);
+  color: var(--ink-soft);
 }
 .formulaVal {
   font-family: var(--font-mono);
-  color: var(--text);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 .formulaFinal {
-  border-top: 1px dashed var(--border-strong);
-  padding-top: var(--space-2);
-  margin-top: 2px;
+  padding: 11px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  border-top: 1px solid var(--line);
+}
+.formulaFinal span:first-child {
+  color: var(--ink);
 }
 .formulaFinal .formulaVal {
-  color: var(--accent);
-  font-size: var(--fs-lg);
-  font-weight: 700;
+  color: var(--accent-ink);
+}
+.penaltyBlock {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 13px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
 }
 .penalty {
   color: var(--penalty) !important;
 }
 .hint {
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
+  font-size: 11.5px;
+  color: var(--ink-dim);
   line-height: 1.5;
 }

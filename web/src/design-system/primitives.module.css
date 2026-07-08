@@ -1,68 +1,68 @@
-/* Shared primitive components: Panel, Stat, Meter, Pill, Badge, Avatar, SourceBadge. */
+/* Shared primitive components: Panel, Stat, Meter, Pill, SourceBadge, Avatar. */
 
 .panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
 }
 
 .panelHeader {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-4) var(--space-4) var(--space-2);
 }
 
 .panelDot {
+  align-self: center;
   width: 7px;
   height: 7px;
-  border-radius: var(--radius-pill);
+  border-radius: 2px;
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
   flex: none;
 }
 
 .panelTitle {
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
 }
 
 .panelMeta {
   margin-left: auto;
+  font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 
 .panelBody {
-  padding: var(--space-4);
+  padding: var(--space-2) var(--space-4) var(--space-4);
 }
 
 /* Stat */
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 .statValue {
   font-family: var(--font-mono);
-  font-size: var(--fs-lg);
+  font-size: 15px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 .statLabel {
-  font-size: var(--fs-xs);
-  letter-spacing: 0.04em;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 
 /* Meter */
@@ -75,20 +75,20 @@
   width: 92px;
   flex: none;
   font-size: var(--fs-sm);
-  color: var(--text-muted);
+  color: var(--ink-soft);
 }
 .meterTrack {
   position: relative;
   flex: 1;
-  height: 7px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-inset);
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: var(--sunk);
   overflow: hidden;
 }
 .meterFill {
   position: absolute;
   inset: 0 auto 0 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-pill);
   transition: width var(--dur) var(--ease);
 }
 .meterValue {
@@ -96,45 +96,46 @@
   flex: none;
   text-align: right;
   font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  color: var(--text);
+  font-size: var(--fs-xs);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
-/* Pill / Badge */
+/* Pill */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   padding: 2px 9px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-pill);
   font-size: var(--fs-xs);
   font-weight: 500;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  background: var(--card);
   white-space: nowrap;
 }
 
+/* SourceBadge — per-instance color via the inline --src custom property. */
 .sourceBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 9px 2px 7px;
-  border-radius: var(--radius-pill);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  border: 1px solid color-mix(in srgb, var(--src) 40%, transparent);
-  color: var(--src);
-  background: color-mix(in srgb, var(--src) 12%, transparent);
+  font-size: 11.5px;
+  color: var(--ink-soft);
   white-space: nowrap;
 }
 .sourceDot {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
   background: var(--src);
   flex: none;
+}
+.sourceScore {
+  margin-left: 1px;
+  font-size: 10.5px;
+  color: var(--ink-dim);
 }
 
 /* Avatar */
@@ -142,9 +143,9 @@
   display: grid;
   place-items: center;
   flex: none;
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-pill);
   font-weight: 700;
-  color: #0a0e16;
+  color: #fff;
   font-family: var(--font-sans);
   user-select: none;
 }

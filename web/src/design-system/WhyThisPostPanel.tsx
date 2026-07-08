@@ -37,7 +37,7 @@ export function WhyThisPostPanel({ item, weightVector }: WhyThisPostPanelProps) 
     <div className={styles.wrap}>
       <div className={styles.postPeek}>
         <div className={styles.postPeekHead}>
-          <Avatar handle={item.author.handle} size={22} />
+          <Avatar handle={item.author.handle} name={item.author.display_name} size={22} />
           <strong>{item.author.display_name}</strong>
           <span className={styles.postPeekHandle}>@{item.author.handle}</span>
         </div>
@@ -88,25 +88,23 @@ export function WhyThisPostPanel({ item, weightVector }: WhyThisPostPanelProps) 
         <span className={styles.sectionTitle}>Score composition</span>
         <div className={styles.formula}>
           <div className={styles.formulaRow}>
-            <span>Model score (Σ weight · action)</span>
+            <span>Model score · Σ weight · action</span>
             <span className={styles.formulaVal}>{fixed(collapse, 3)}</span>
           </div>
           <div className={styles.formulaRow}>
             <span>× preference multiplier (§4)</span>
             <span className={styles.formulaVal}>×{fixed(mult, 2)}</span>
           </div>
-          <div className={`${styles.formulaRow} ${styles.formulaFinal}`}>
+          <div className={styles.formulaFinal}>
             <span>Final score</span>
             <span className={styles.formulaVal}>{fixed(why.final_score, 3)}</span>
           </div>
         </div>
-        <div className={styles.formula}>
-          <div className={styles.formulaRow}>
-            <span>MMR diversity penalty (§5)</span>
-            <span className={`${styles.formulaVal} ${penalty > 0 ? styles.penalty : ""}`}>
-              {penalty > 0 ? `−${fixed(penalty, 3)}` : "0.000"}
-            </span>
-          </div>
+        <div className={styles.penaltyBlock}>
+          <span>MMR diversity penalty (§5)</span>
+          <span className={`mono ${penalty > 0 ? styles.penalty : ""}`}>
+            {penalty > 0 ? `−${fixed(penalty, 3)}` : "0.000"}
+          </span>
         </div>
         <span className={styles.hint}>
           The penalty shaped this post's <em>position</em> during greedy MMR selection —

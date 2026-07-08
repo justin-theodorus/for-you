@@ -4,7 +4,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { SOURCE_LABELS } from "../api/types";
-import { hueFromString, initials, sourceColor } from "./format";
+import { avatarGradient, initials, sourceColor } from "./format";
 import styles from "./primitives.module.css";
 
 interface PanelProps {
@@ -77,22 +77,21 @@ export function SourceBadge({ source, score }: { source: string; score?: number 
     <span className={styles.sourceBadge} style={style}>
       <span className={styles.sourceDot} />
       {SOURCE_LABELS[source] ?? source}
-      {score !== undefined && <span className="mono" style={{ opacity: 0.75 }}>{score.toFixed(2)}</span>}
+      {score !== undefined && <span className={`mono ${styles.sourceScore}`}>{score.toFixed(2)}</span>}
     </span>
   );
 }
 
-export function Avatar({ handle, size = 38 }: { handle: string; size?: number }) {
-  const hue = hueFromString(handle);
+export function Avatar({ handle, name, size = 38 }: { handle: string; name?: string; size?: number }) {
   const style: CSSProperties = {
     width: size,
     height: size,
     fontSize: size * 0.36,
-    background: `linear-gradient(140deg, hsl(${hue} 70% 62%), hsl(${(hue + 40) % 360} 72% 48%))`,
+    background: avatarGradient(handle),
   };
   return (
     <span className={styles.avatar} style={style} aria-hidden>
-      {initials(handle)}
+      {initials(name ?? handle)}
     </span>
   );
 }
