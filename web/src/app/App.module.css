@@ -1,0 +1,227 @@
+.app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-1) 82%, transparent);
+  backdrop-filter: blur(8px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.brandMark {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(140deg, var(--accent-strong), var(--src-out-of-network));
+  display: grid;
+  place-items: center;
+  color: #051012;
+  font-weight: 800;
+  font-size: 15px;
+}
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.brandTitle {
+  font-weight: 700;
+  font-size: var(--fs-base);
+}
+.brandSub {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.topMeta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--positive);
+}
+.chipLoading .chipDot {
+  background: var(--warning);
+  animation: pulse 1s var(--ease) infinite;
+}
+.chipError {
+  color: var(--penalty);
+  border-color: var(--penalty);
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Viewer picker */
+.picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.pickerLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.select {
+  appearance: none;
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 5px 28px 5px 10px;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) center, calc(100% - 9px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.select:hover {
+  border-color: var(--accent);
+}
+
+/* Main 3-zone grid */
+.main {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 400px;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  overflow: hidden;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow-y: auto;
+  padding-bottom: var(--space-6);
+}
+.colCenter {
+  gap: var(--space-3);
+}
+
+.feedHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 var(--space-1);
+}
+.feedTitle {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+.feedSub {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+.tuned {
+  color: var(--accent);
+}
+
+.feedList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: opacity var(--dur) var(--ease);
+}
+.feedListLoading {
+  opacity: 0.55;
+}
+
+.legendBar {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.legendChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.legendSwatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.banner {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--penalty);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--penalty) 10%, transparent);
+  color: var(--penalty);
+  font-size: var(--fs-sm);
+}
+
+.skeleton {
+  height: 118px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(100deg, var(--surface-1) 30%, var(--surface-2) 50%, var(--surface-1) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border: 1px solid var(--border);
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  .main {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+  .colRight {
+    display: none;
+  }
+}
+@media (max-width: 860px) {
+  .main {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+  .colLeft {
+    display: none;
+  }
+}

@@ -1,0 +1,150 @@
+/* Shared primitive components: Panel, Stat, Meter, Pill, Badge, Avatar, SourceBadge. */
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.panelDot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  flex: none;
+}
+
+.panelTitle {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.panelMeta {
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.panelBody {
+  padding: var(--space-4);
+}
+
+/* Stat */
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.statValue {
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.statLabel {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Meter */
+.meter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.meterLabel {
+  width: 92px;
+  flex: none;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.meterTrack {
+  position: relative;
+  flex: 1;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+.meterFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--radius-pill);
+  transition: width var(--dur) var(--ease);
+}
+.meterValue {
+  width: 40px;
+  flex: none;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pill / Badge */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+.sourceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px 2px 7px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--src) 40%, transparent);
+  color: var(--src);
+  background: color-mix(in srgb, var(--src) 12%, transparent);
+  white-space: nowrap;
+}
+.sourceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--src);
+  flex: none;
+}
+
+/* Avatar */
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  color: #0a0e16;
+  font-family: var(--font-sans);
+  user-select: none;
+}

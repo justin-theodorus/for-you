@@ -1,0 +1,124 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 118px 1fr 34px;
+  align-items: center;
+  gap: var(--space-2);
+}
+.rowLabel {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rowLabelDim {
+  color: var(--text-dim);
+  font-size: var(--fs-xs);
+  padding-left: var(--space-3);
+}
+.bar {
+  height: 20px;
+  border-radius: var(--radius-sm);
+  min-width: 2px;
+  transition: width var(--dur-slow) var(--ease);
+  opacity: 0.85;
+}
+.count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.selectedRow .rowLabel {
+  color: var(--accent);
+  font-weight: 600;
+}
+.selectedRow .count {
+  color: var(--accent);
+  font-weight: 700;
+}
+.stepIcon {
+  color: var(--text-dim);
+  font-size: var(--fs-xs);
+  padding: 1px 0 1px var(--space-3);
+}
+
+.mixHead,
+.statsHead {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: var(--space-2);
+}
+
+.stats {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.legend {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+.legendToggle {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legendToggle:hover {
+  color: var(--accent);
+}
+.legendList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.legendItem {
+  display: flex;
+  gap: var(--space-2);
+}
+.legendNum {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.legendText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.legendTitle {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.legendDesc {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  line-height: 1.5;
+}
