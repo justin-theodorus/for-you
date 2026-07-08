@@ -17,24 +17,11 @@ body,
 body {
   font-family: var(--font-sans);
   font-size: var(--fs-base);
-  line-height: 1.5;
-  color: var(--text);
-  background: var(--bg);
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--paper);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-}
-
-/* Subtle instrument-panel grid on the page background. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(67, 217, 200, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(67, 217, 200, 0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
 }
 
 button {
@@ -51,22 +38,42 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: var(--radius-pill);
-  border: 2px solid var(--bg);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-strong);
+  background: var(--line-strong);
+  border-radius: var(--r-pill);
+  border: 3px solid var(--paper);
 }
 
+/* Tabular monospace numerics — used across components via the plain "mono" class name. */
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Uppercase caps label — the recurring section/eyebrow label from the template. */
+.lbl {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Feed-card entrance. */
+@keyframes fyRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }

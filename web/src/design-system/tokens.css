@@ -1,70 +1,58 @@
 /*
  * Design tokens for the For You ranking inspector (plan.md §9).
  *
- * A dark "control-room" system: deep slate surfaces, a cyan signal accent, and three
+ * A light, editorial "paper" system: warm off-white surfaces, a muted slate-blue accent,
+ * a serif display face (Newsreader) over a grotesque UI face (Schibsted Grotesk), and three
  * fixed source hues (in-network / out-of-network / trending) reused everywhere a source
- * appears. These CSS custom properties are the single styling contract the components
- * read — and the token layer a later Claude Design sync picks up.
+ * appears. These CSS custom properties are the single styling contract the components read —
+ * and the token layer the Claude Design sync picks up. Names mirror the Ranking Inspector
+ * Claude Design template verbatim.
  */
 
 :root {
-  /* Surfaces — deepest at the page, lifting toward panels and cards. */
-  --bg: #080b11;
-  --surface-1: #0d1119;
-  --surface-2: #121826;
-  --surface-3: #182034;
-  --surface-inset: #0a0e16;
+  /* Surfaces — page paper, lifted cards, sunken tracks, faintly-raised insets. */
+  --paper: #f6f4ef;
+  --card: #ffffff;
+  --sunk: #efece4;
+  --raise: #fbfaf7;
+
+  /* Ink (text). */
+  --ink: #22211d;
+  --ink-soft: #57544c;
+  --ink-dim: #939085;
 
   /* Lines. */
-  --border: #232c40;
-  --border-strong: #33405c;
+  --line: #e7e3d9;
+  --line-soft: #efece4;
+  --line-strong: #d8d3c7;
 
-  /* Text. */
-  --text: #e7ebf3;
-  --text-muted: #9aa4bd;
-  --text-dim: #626d88;
-
-  /* Signal accent (cyan) — interactive + "the system" highlights. */
-  --accent: #43d9c8;
-  --accent-strong: #6ceadb;
-  --accent-dim: #1c3b3b;
+  /* Accent (muted slate-blue) — interactive + "the system" highlights. */
+  --accent: #3f5d80;
+  --accent-ink: #2f486a;
+  --accent-soft: #ecf0f5;
 
   /* Source hues — load-bearing: the same color tags a source in badges, the pipeline
      panel, the source mix, and card provenance. */
-  --src-in-network: #4ade80;
-  --src-out-of-network: #60a5fa;
-  --src-trending: #fbbf24;
+  --src-in: #5f8c6a;
+  --src-out: #4f7398;
+  --src-trend: #b07d3c;
+
+  /* Action-score hue ramp (like/reply/repost/quote/dwell). */
+  --act-like: #b0637a;
+  --act-reply: #4f7398;
+  --act-repost: #5f8c6a;
+  --act-quote: #8a6da6;
+  --act-dwell: #b07d3c;
 
   /* Semantic. */
-  --positive: #4ade80;
-  --penalty: #fb7185;
-  --warning: #fbbf24;
-
-  /* Action-score hue ramp (like/reply/repost/quote/dwell) — distinct but harmonious. */
-  --act-like: #f472b6;
-  --act-reply: #60a5fa;
-  --act-repost: #4ade80;
-  --act-quote: #c084fc;
-  --act-dwell: #fbbf24;
-
-  /* Spacing scale. */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-
-  /* Radius. */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-pill: 999px;
+  --positive: #5f8c6a;
+  --warn: #b07d3c;
+  --penalty: #b0637a;
 
   /* Type. */
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, "Menlo", monospace;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-sans: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Spline Sans Mono", "SF Mono", ui-monospace, "Menlo", monospace;
   --fs-xs: 11px;
   --fs-sm: 12px;
   --fs-md: 13px;
@@ -73,10 +61,24 @@
   --fs-xl: 20px;
   --fs-2xl: 26px;
 
+  /* Radius. */
+  --r-sm: 7px;
+  --r-md: 11px;
+  --r-lg: 15px;
+  --r-pill: 999px;
+
+  /* Spacing scale (supplementary — not in the template, used as layout glue). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
   /* Elevation. */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-glow: 0 0 0 1px var(--accent-dim), 0 0 24px -6px rgba(67, 217, 200, 0.4);
+  --shadow: 0 1px 2px rgba(34, 33, 29, 0.05), 0 1px 1px rgba(34, 33, 29, 0.03);
+  --shadow-lift: 0 4px 16px -6px rgba(34, 33, 29, 0.14);
 
   /* Motion. */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
