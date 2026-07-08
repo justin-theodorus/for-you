@@ -15,6 +15,12 @@ venv/
 # Anchored to repo root so it doesn't also ignore src/foryou/db/models.
 /models/
 
+# Frontend (plan.md §9)
+web/node_modules/
+web/dist/
+web/.vite/
+*.tsbuildinfo
+
 # uv
 # (uv.lock is committed on purpose)
 

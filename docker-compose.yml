@@ -29,6 +29,41 @@ services:
       - hf-cache:/opt/hf-cache
     working_dir: /app
 
+  # FastAPI ranking service (plan.md §9). Reuses the app image; long-running with a
+  # published port (unlike `app`, which is invoked ephemerally via `run --rm`). Needs a
+  # seeded + embedded + trained corpus first (make seed/embeddings/centroids/train).
+  api:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    # Host port defaults to 8000; override API_PORT in .env if that port is taken.
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - hf-cache:/opt/hf-cache
+    working_dir: /app
+    command: uvicorn foryou.web.app:app --host 0.0.0.0 --port 8000 --reload
+
+  # Vite dev server for the demo frontend (plan.md §9). Talks to `api` from the browser
+  # via VITE_API_BASE_URL. The anonymous volume keeps container node_modules off the host.
+  web:
+    image: node:20-bookworm-slim
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app/web
+      - /app/web/node_modules
+    working_dir: /app/web
+    environment:
+      VITE_API_BASE_URL: http://localhost:${API_PORT:-8000}
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+
 volumes:
   pgdata:
   hf-cache:

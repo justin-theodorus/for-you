@@ -13,7 +13,7 @@ ARGS ?=
 .DEFAULT_GOAL := help
 
 .PHONY: help setup build up down reset migrate revision migrate-check \
-	smoke seed embeddings centroids train feed test test-clean lint format typecheck check shell psql
+	smoke seed embeddings centroids train feed api web test test-clean lint format typecheck check shell psql
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -67,6 +67,14 @@ train: ## Train the scoring model: make train ARGS="--negative-ratio 3 --users a
 
 feed: ## Rank a user's feed: make feed ARGS="--handle reader_0 --limit 20"
 	$(APP) python scripts/rank_feed.py $(ARGS)
+
+## --- Web app (plan.md §9) ---
+
+api: ## Serve the ranking API at http://localhost:8000 (needs seed+embeddings+centroids+train)
+	$(COMPOSE) up api
+
+web: ## Serve the demo frontend at http://localhost:5173 (start `make api` first)
+	$(COMPOSE) up web
 
 ## --- Quality ---
 
