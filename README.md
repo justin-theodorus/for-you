@@ -30,6 +30,30 @@ docker compose run --rm app python scripts/verify_smoke.py
 docker compose run --rm app pytest
 ```
 
+## Ranking-inspector demo (plan.md §9)
+
+A live web app that serves the feed straight from the ranking engine, re-ranks on every
+preference change, and explains each result. It's a *ranking inspector*, not an X clone:
+the pipeline's stages, per-post scores, and the tunable preference layer are the point.
+
+```bash
+# Build the corpus the demo runs on.
+docker compose run --rm app python scripts/seed_world.py --wipe
+docker compose run --rm app python scripts/generate_embeddings.py
+docker compose run --rm app python scripts/generate_topic_centroids.py
+docker compose run --rm app python scripts/train_scorer.py
+
+docker compose up api        # FastAPI ranking service -> http://localhost:8000
+docker compose up web        # Vite demo frontend      -> http://localhost:5173
+```
+
+Open http://localhost:5173. Drag the recency / source-mix / reach / exploration sliders (or
+weight a topic) and watch the feed re-rank live; click any post for the "Why this post?"
+panel (source provenance, per-action model probabilities, feature values, preference
+multiplier, MMR penalty) and read the live pipeline-stage trace. If host port 8000 is
+taken, set `API_PORT` in `.env` — the frontend follows it automatically. The backend is
+`src/foryou/web/` (FastAPI over `rank_feed`); the frontend + its design system are in `web/`.
+
 ## Schema
 
 | Table | Purpose |
@@ -43,7 +67,7 @@ docker compose run --rm app pytest
 | `user_embeddings` | Per-user engagement-history centroid. |
 | `topic_centroids` | Per-topic centroid for the topic sliders. |
 | `post_velocity` | Rolling engagement-velocity aggregates (trends). |
-| `feed_impressions` | Explainability log (written by the ranking service later). |
+| `feed_impressions` | Explainability log written by the ranking service — backs "Why this post?". |
 | `budget_ledger` | Daily cap for the bounded live-trigger path. |
 
 Embeddings and velocity live in **dedicated tables** rather than columns on
