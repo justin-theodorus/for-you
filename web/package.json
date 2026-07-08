@@ -3,10 +3,20 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "For You — ranking-inspector demo frontend (plan.md §9)",
+  "description": "For You — ranking-inspector demo frontend + design system (plan.md §9)",
+  "module": "dist-lib/foryou-ds.js",
+  "types": "dist-lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist-lib/index.d.ts",
+      "import": "./dist-lib/foryou-ds.js"
+    },
+    "./styles.css": "./dist-lib/style.css"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:lib": "vite build --config vite.lib.config.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
@@ -19,6 +29,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.2",
     "typescript": "^5.6.3",
-    "vite": "^5.4.9"
+    "vite": "^5.4.9",
+    "vite-plugin-dts": "^4.3.0"
   }
 }

@@ -18,8 +18,14 @@ venv/
 # Frontend (plan.md §9)
 web/node_modules/
 web/dist/
+web/dist-lib/
 web/.vite/
 *.tsbuildinfo
+
+# design-sync (Phase D) — staged scripts, build output, and all sync state
+.ds-sync/
+ds-bundle/
+.design-sync/
 
 # uv
 # (uv.lock is committed on purpose)
