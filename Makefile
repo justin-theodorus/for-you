@@ -59,6 +59,9 @@ seed: ## Seed a synthetic world: make seed ARGS="--wipe --seed 7"
 personas: ## Generate LLM persona posts (offline w/o OPENAI_API_KEY): make personas ARGS="--posts-per-persona 3"
 	$(APP) python scripts/generate_personas.py $(ARGS)
 
+simulate: ## Advance the world by N ticks (templated, additive): make simulate ARGS="--ticks 6"
+	$(APP) python scripts/simulate.py $(ARGS)
+
 embeddings: ## Generate post embeddings: make embeddings ARGS="--limit 20 --regenerate"
 	$(APP) python scripts/generate_embeddings.py $(ARGS)
 

@@ -42,7 +42,7 @@ ARCHETYPE_TOPICS: dict[Archetype, list[str]] = {
     Archetype.OTHER: ["life", "food"],
 }
 
-_TOPIC_CONTENT: dict[str, list[str]] = {
+TOPIC_CONTENT: dict[str, list[str]] = {
     "startups": [
         "Shipping the MVP beats polishing a roadmap nobody has validated.",
         "Fundraising is a means, not a milestone — default alive first.",
@@ -123,7 +123,7 @@ _TOPIC_CONTENT: dict[str, list[str]] = {
     ],
 }
 
-_ALL_TOPICS: list[str] = sorted(_TOPIC_CONTENT)
+_ALL_TOPICS: list[str] = sorted(TOPIC_CONTENT)
 
 # Engagement kind distribution (weights). click/dwell/report don't map to a post
 # counter; like/reply/repost/quote do.
@@ -294,7 +294,7 @@ def _build_posts(
                 Post(
                     id=det_uuid(rng),
                     author_id=participant.user.id,
-                    content=rng.choice(_TOPIC_CONTENT[topic]),
+                    content=rng.choice(TOPIC_CONTENT[topic]),
                     kind=PostKind.POST,
                     topics=[topic],
                     created_at=created_at,
