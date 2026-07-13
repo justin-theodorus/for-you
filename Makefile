@@ -13,7 +13,7 @@ ARGS ?=
 .DEFAULT_GOAL := help
 
 .PHONY: help setup build up down reset migrate revision migrate-check \
-	smoke seed embeddings centroids train feed api web test test-clean lint format typecheck check shell psql
+	smoke seed personas embeddings centroids train feed api web test test-clean lint format typecheck check shell psql
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -55,6 +55,9 @@ smoke: ## Run the end-to-end data-layer smoke test
 
 seed: ## Seed a synthetic world: make seed ARGS="--wipe --seed 7"
 	$(APP) python scripts/seed_world.py $(ARGS)
+
+personas: ## Generate LLM persona posts (offline w/o OPENAI_API_KEY): make personas ARGS="--posts-per-persona 3"
+	$(APP) python scripts/generate_personas.py $(ARGS)
 
 embeddings: ## Generate post embeddings: make embeddings ARGS="--limit 20 --regenerate"
 	$(APP) python scripts/generate_embeddings.py $(ARGS)
