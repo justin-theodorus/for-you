@@ -102,6 +102,42 @@ class Settings(BaseSettings):
         description="Seed for deterministic negative sampling in the training set.",
     )
 
+    # --- LLM persona agents (plan.md §6). Content generation is offline-only: with no
+    # OPENAI_API_KEY the generator falls back to the deterministic FakeLLM. Guardrails
+    # (safety gate, per-run caps) live in code; these are only knobs. ---
+    openai_api_key: str | None = Field(
+        default=None,
+        description="OpenAI API key for persona content generation; unset -> offline FakeLLM.",
+    )
+    openai_model: str = Field(
+        default="gpt-4o-mini",
+        description="OpenAI chat model for persona posts; stored as the content model_version.",
+    )
+    persona_temperature: float = Field(
+        default=0.9,
+        description="Sampling temperature for persona post generation.",
+    )
+    persona_max_tokens: int = Field(
+        default=120,
+        description="Max completion tokens per generated persona post.",
+    )
+    persona_max_regenerations: int = Field(
+        default=2,
+        description="Safety-gate retries before a generated post is dropped.",
+    )
+    persona_posts_per_run: int = Field(
+        default=200,
+        description="Hard cap on posts inserted per generation run (cost bound).",
+    )
+    persona_tokens_per_run: int = Field(
+        default=200_000,
+        description="Hard cap on tokens spent per generation run (cost bound).",
+    )
+    persona_usd_per_1m_tokens: float = Field(
+        default=0.60,
+        description="Blended $/1M tokens used for the cost-visible run summary.",
+    )
+
     # --- Web layer (plan.md §9). CORS origins the FastAPI ranking service accepts; the
     # Vite dev server runs on 5173. Set CORS_ORIGINS in .env as a JSON array to override. ---
     cors_origins: list[str] = Field(

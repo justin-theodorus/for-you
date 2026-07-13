@@ -37,6 +37,11 @@ web = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
 ]
+# LLM persona agents (plan.md §6). Offline-only, like `train`: the OpenAI SDK is kept out of
+# the runtime/serving path so ranking never imports it — the generator uses it, or FakeLLM.
+persona = [
+    "openai>=1.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -61,7 +66,7 @@ strict = true
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["pgvector.*", "sentence_transformers.*", "torch.*", "sklearn.*"]
+module = ["pgvector.*", "sentence_transformers.*", "torch.*", "sklearn.*", "openai.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
