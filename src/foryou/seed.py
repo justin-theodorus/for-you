@@ -6,9 +6,10 @@ LLM-generated) and everything is a pure function of ``config.seed`` — the same
 yields an identical world (including row ids), so corpora are snapshot-able for
 ranking experiments.
 
-Out of scope here (see plan.md §6/§7): LLM-authored persona content and reply/quote
-*posts* / thread reconstruction. Engagement events still carry the full kind variety
-(like/reply/repost/quote/click/dwell), which is what drives the post counters.
+LLM-authored persona *content* now lives in ``foryou.personas`` (plan.md §6), which
+reuses this module's determinism spine (``det_uuid``, ``BASE_TIME``) and the shared
+``build_engagements`` heuristic so the two content paths can't drift. Reply/quote
+*posts* and thread reconstruction are still deferred (plan.md §7).
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from __future__ import annotations
 import datetime
 import random
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from sqlalchemy import delete
@@ -26,10 +28,10 @@ from foryou.db.models import Engagement, Follow, Post, User
 
 # Fixed anchor so timestamps — and thus the whole corpus — are reproducible
 # regardless of when the seed runs.
-_BASE_TIME = datetime.datetime(2026, 7, 1, tzinfo=datetime.UTC)
-_POST_WINDOW_SECONDS = int(datetime.timedelta(days=14).total_seconds())
+BASE_TIME = datetime.datetime(2026, 7, 1, tzinfo=datetime.UTC)
+POST_WINDOW_SECONDS = int(datetime.timedelta(days=14).total_seconds())
 
-_ARCHETYPE_TOPICS: dict[Archetype, list[str]] = {
+ARCHETYPE_TOPICS: dict[Archetype, list[str]] = {
     Archetype.FOUNDER: ["startups", "tech"],
     Archetype.JOURNALIST: ["news", "politics"],
     Archetype.MEME: ["memes", "culture"],
@@ -125,7 +127,7 @@ _ALL_TOPICS: list[str] = sorted(_TOPIC_CONTENT)
 
 # Engagement kind distribution (weights). click/dwell/report don't map to a post
 # counter; like/reply/repost/quote do.
-_ENGAGEMENT_KINDS: list[EngagementKind] = [
+ENGAGEMENT_KINDS: list[EngagementKind] = [
     EngagementKind.LIKE,
     EngagementKind.CLICK,
     EngagementKind.DWELL,
@@ -134,9 +136,9 @@ _ENGAGEMENT_KINDS: list[EngagementKind] = [
     EngagementKind.QUOTE,
     EngagementKind.REPORT,
 ]
-_ENGAGEMENT_WEIGHTS: list[float] = [50.0, 20.0, 15.0, 6.0, 5.0, 3.0, 1.0]
+ENGAGEMENT_WEIGHTS: list[float] = [50.0, 20.0, 15.0, 6.0, 5.0, 3.0, 1.0]
 
-_COUNTER_ATTR: dict[EngagementKind, str] = {
+COUNTER_ATTR: dict[EngagementKind, str] = {
     EngagementKind.LIKE: "like_count",
     EngagementKind.REPLY: "reply_count",
     EngagementKind.REPOST: "repost_count",
@@ -173,16 +175,16 @@ class _Participant:
     topics: list[str]
 
 
-def _det_uuid(rng: random.Random) -> uuid.UUID:
+def det_uuid(rng: random.Random) -> uuid.UUID:
     """Deterministic UUIDv4 so the whole corpus (ids included) is reproducible."""
     return uuid.UUID(bytes=rng.randbytes(16), version=4)
 
 
-def _overlap(a: list[str], b: list[str]) -> int:
+def overlap(a: list[str], b: list[str]) -> int:
     return len(set(a) & set(b))
 
 
-def _weighted_sample[T](
+def weighted_sample[T](
     rng: random.Random, items: list[T], weights: list[float], k: int
 ) -> list[T]:
     """Pick up to ``k`` distinct items with probability proportional to weight."""
@@ -204,14 +206,58 @@ def _weighted_sample[T](
     return chosen
 
 
+def build_engagements(
+    rng: random.Random,
+    actors: Sequence[tuple[uuid.UUID, list[str]]],
+    posts: list[Post],
+    per_user: int,
+    *,
+    base_time: datetime.datetime,
+) -> list[Engagement]:
+    """Topic-overlap-weighted engagement events; bumps post counters in place.
+
+    Shared by the seeder and the persona generator (plan.md §6) so the heuristic —
+    weighting, kind distribution, and counter/log consistency — can't drift between
+    them. Each ``actor`` is an ``(user_id, topics)`` pair; every actor engages up to
+    ``per_user`` posts it did not author. Timestamps are clamped to ``base_time``.
+    """
+    engagements: list[Engagement] = []
+    for actor_id, topics in actors:
+        candidates = [p for p in posts if p.author_id != actor_id]
+        weights = [1.0 + overlap(topics, post.topics) * 4.0 for post in candidates]
+        for post in weighted_sample(rng, candidates, weights, per_user):
+            kind = rng.choices(ENGAGEMENT_KINDS, ENGAGEMENT_WEIGHTS, k=1)[0]
+            created_at = min(
+                base_time,
+                post.created_at + datetime.timedelta(minutes=rng.randint(1, 240)),
+            )
+            value = float(rng.randint(500, 60_000)) if kind is EngagementKind.DWELL else None
+            engagements.append(
+                Engagement(
+                    id=det_uuid(rng),
+                    user_id=actor_id,
+                    post_id=post.id,
+                    kind=kind,
+                    value=value,
+                    created_at=created_at,
+                )
+            )
+            attr = COUNTER_ATTR.get(kind)
+            if attr is not None:
+                # Python-side default=0 only applies at INSERT, so the attribute
+                # is still None on the pending object — coalesce before bumping.
+                setattr(post, attr, (getattr(post, attr) or 0) + 1)
+    return engagements
+
+
 def _build_participants(config: SeedConfig, rng: random.Random) -> list[_Participant]:
     archetypes = list(Archetype)
     participants: list[_Participant] = []
     for i in range(config.personas):
         archetype = archetypes[i % len(archetypes)]
-        topics = _ARCHETYPE_TOPICS[archetype]
+        topics = ARCHETYPE_TOPICS[archetype]
         user = User(
-            id=_det_uuid(rng),
+            id=det_uuid(rng),
             handle=f"{archetype.value}_{i}",
             display_name=f"{archetype.value.title()} {i}",
             is_persona=True,
@@ -222,7 +268,7 @@ def _build_participants(config: SeedConfig, rng: random.Random) -> list[_Partici
     for j in range(config.readers):
         topics = rng.sample(_ALL_TOPICS, k=rng.randint(2, 3))
         user = User(
-            id=_det_uuid(rng),
+            id=det_uuid(rng),
             handle=f"reader_{j}",
             display_name=f"Reader {j}",
             is_persona=False,
@@ -241,12 +287,12 @@ def _build_posts(
     for participant in personas:
         for _ in range(config.posts_per_persona):
             topic = rng.choice(participant.topics)
-            created_at = _BASE_TIME - datetime.timedelta(
-                seconds=rng.randint(0, _POST_WINDOW_SECONDS)
+            created_at = BASE_TIME - datetime.timedelta(
+                seconds=rng.randint(0, POST_WINDOW_SECONDS)
             )
             posts.append(
                 Post(
-                    id=_det_uuid(rng),
+                    id=det_uuid(rng),
                     author_id=participant.user.id,
                     content=rng.choice(_TOPIC_CONTENT[topic]),
                     kind=PostKind.POST,
@@ -263,8 +309,8 @@ def _build_follows(
     follows: list[Follow] = []
     for participant in participants:
         others = [p for p in participants if p.user.id != participant.user.id]
-        weights = [1.0 + _overlap(participant.topics, p.topics) * 3.0 for p in others]
-        for followee in _weighted_sample(rng, others, weights, config.follows_per_user):
+        weights = [1.0 + overlap(participant.topics, p.topics) * 3.0 for p in others]
+        for followee in weighted_sample(rng, others, weights, config.follows_per_user):
             follows.append(
                 Follow(follower_id=participant.user.id, followee_id=followee.user.id)
             )
@@ -277,37 +323,10 @@ def _build_engagements(
     participants: list[_Participant],
     posts: list[Post],
 ) -> list[Engagement]:
-    engagements: list[Engagement] = []
-    for participant in participants:
-        candidates = [p for p in posts if p.author_id != participant.user.id]
-        weights = [
-            1.0 + _overlap(participant.topics, post.topics) * 4.0 for post in candidates
-        ]
-        for post in _weighted_sample(
-            rng, candidates, weights, config.engagements_per_user
-        ):
-            kind = rng.choices(_ENGAGEMENT_KINDS, _ENGAGEMENT_WEIGHTS, k=1)[0]
-            created_at = min(
-                _BASE_TIME,
-                post.created_at + datetime.timedelta(minutes=rng.randint(1, 240)),
-            )
-            value = float(rng.randint(500, 60_000)) if kind is EngagementKind.DWELL else None
-            engagements.append(
-                Engagement(
-                    id=_det_uuid(rng),
-                    user_id=participant.user.id,
-                    post_id=post.id,
-                    kind=kind,
-                    value=value,
-                    created_at=created_at,
-                )
-            )
-            attr = _COUNTER_ATTR.get(kind)
-            if attr is not None:
-                # Python-side default=0 only applies at INSERT, so the attribute
-                # is still None on the pending object — coalesce before bumping.
-                setattr(post, attr, (getattr(post, attr) or 0) + 1)
-    return engagements
+    actors = [(p.user.id, p.topics) for p in participants]
+    return build_engagements(
+        rng, actors, posts, config.engagements_per_user, base_time=BASE_TIME
+    )
 
 
 async def seed_world(session: AsyncSession, config: SeedConfig | None = None) -> SeedSummary:
