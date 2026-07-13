@@ -66,7 +66,7 @@ taken, set `API_PORT` in `.env` — the frontend follows it automatically. The b
 | `post_embeddings` | Per-post content vectors (`Vector(384)`). |
 | `user_embeddings` | Per-user engagement-history centroid. |
 | `topic_centroids` | Per-topic centroid for the topic sliders. |
-| `post_velocity` | Rolling engagement-velocity aggregates (trends). |
+| `post_velocity` | Rolling engagement-velocity aggregates (trends), refreshed in batch by the world simulation (`make simulate`). |
 | `feed_impressions` | Explainability log written by the ranking service — backs "Why this post?". |
 | `budget_ledger` | Daily cap for the bounded live-trigger path. |
 
