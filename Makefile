@@ -13,7 +13,7 @@ ARGS ?=
 .DEFAULT_GOAL := help
 
 .PHONY: help setup build up down reset migrate revision migrate-check \
-	smoke seed personas embeddings centroids train feed api web test test-clean lint format typecheck check shell psql
+	smoke seed personas simulate live embeddings centroids train feed api web test test-clean lint format typecheck check shell psql
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -61,6 +61,9 @@ personas: ## Generate LLM persona posts (offline w/o OPENAI_API_KEY): make perso
 
 simulate: ## Advance the world by N ticks (templated, additive): make simulate ARGS="--ticks 6"
 	$(APP) python scripts/simulate.py $(ARGS)
+
+live: ## Post as a user + trigger bounded persona reactions (§8): make live ARGS='--content "hi" --fake'
+	$(APP) python scripts/live_trigger.py $(ARGS)
 
 embeddings: ## Generate post embeddings: make embeddings ARGS="--limit 20 --regenerate"
 	$(APP) python scripts/generate_embeddings.py $(ARGS)
