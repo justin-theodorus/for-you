@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from foryou.personas.content import generate_post_text
+from foryou.personas.content import generate_post_text, generate_reply_text
 from foryou.personas.engagement import EngagementActor, build_engagements_for_posts
 from foryou.personas.generator import (
     GenerationSummary,
@@ -10,7 +10,12 @@ from foryou.personas.generator import (
     generate_personas,
 )
 from foryou.personas.llm import FakeLLM, LLMClient, LLMResult, OpenAIClient
-from foryou.personas.profiles import PersonaProfile, build_prompt, resolve_profile
+from foryou.personas.profiles import (
+    PersonaProfile,
+    build_prompt,
+    build_reply_prompt,
+    resolve_profile,
+)
 from foryou.personas.safety import SafetyVerdict, is_safe
 
 __all__ = [
@@ -25,8 +30,10 @@ __all__ = [
     "SafetyVerdict",
     "build_engagements_for_posts",
     "build_prompt",
+    "build_reply_prompt",
     "generate_personas",
     "generate_post_text",
+    "generate_reply_text",
     "is_safe",
     "resolve_profile",
 ]

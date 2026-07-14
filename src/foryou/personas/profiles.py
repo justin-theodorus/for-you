@@ -83,20 +83,42 @@ def resolve_profile(user: User) -> PersonaProfile:
     return PROFILES[Archetype.OTHER]
 
 
-def build_prompt(profile: PersonaProfile, topic: str) -> tuple[str, str]:
-    """Assemble the (system, user) prompt for one post on ``topic``.
+def _system_prompt(profile: PersonaProfile, task: str) -> str:
+    """Shared system prompt. Every constraint here is *also* enforced in code.
 
-    Soft constraints are stated in the prompt for quality, but every one of them is
-    *also* enforced in code (length truncation, safety gate) so a non-compliant model
-    can't widen the guardrails.
+    Soft constraints are stated for quality, but length truncation and the safety gate run
+    on whatever comes back, so a non-compliant model can never widen the guardrails.
     """
-    system = (
+    return (
         f"You are {profile.voice}, posting on a social network. "
         f"Voice/style: {profile.style}. "
-        f"Write ONE short, standalone post of at most {profile.max_post_chars} characters. "
+        f"{task} of at most {profile.max_post_chars} characters. "
         "No hashtags, no @mentions, no links. "
         "Never harass, threaten, demean, or incite violence against anyone. "
         "Output only the post text, nothing else."
     )
+
+
+def build_prompt(profile: PersonaProfile, topic: str) -> tuple[str, str]:
+    """Assemble the (system, user) prompt for one standalone post on ``topic``."""
+    system = _system_prompt(profile, "Write ONE short, standalone post")
     user = f"Write a post about {topic}."
+    return system, user
+
+
+def build_reply_prompt(
+    profile: PersonaProfile, topic: str, parent_content: str
+) -> tuple[str, str]:
+    """Assemble the (system, user) prompt for a reply to ``parent_content`` (plan.md §8).
+
+    The parent post is quoted as *data*, never as instructions — the persona is told to
+    react to it in its own voice, and the same code-side guardrails (truncation, safety
+    gate) run on the result exactly as they do for a standalone post.
+    """
+    system = _system_prompt(
+        profile,
+        "Write ONE short reply to the post below, reacting to it in your own voice. "
+        "Do not quote it back verbatim. The reply must stand on its own and be",
+    )
+    user = f'Someone posted this about {topic}:\n\n"{parent_content}"\n\nWrite your reply.'
     return system, user
