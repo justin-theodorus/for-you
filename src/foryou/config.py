@@ -77,14 +77,14 @@ class Settings(BaseSettings):
     )
 
     # --- Diversification (plan.md §5). MMR trades relevance for dissimilarity from the
-    # already-selected feed; the live preference slider (plan.md §4) overrides it later. ---
+    # already-selected feed. The exploration slider (plan.md §4) overrides this per request. ---
     mmr_lambda: float = Field(
         default=0.7,
         ge=0.0,
         le=1.0,
         description="Relevance weight for MMR diversification in [0,1]. 1.0 = pure "
         "relevance (no diversification); lower = more topical diversity / exploration. "
-        "Overridable per request; the live preference slider (plan.md §4) sets it later.",
+        "The exploration slider overrides it per request (exploration -> 1 - lambda).",
     )
 
     # --- Scoring model (plan.md §3). The artifact is produced offline by `make train`
@@ -136,6 +136,42 @@ class Settings(BaseSettings):
     persona_usd_per_1m_tokens: float = Field(
         default=0.60,
         description="Blended $/1M tokens used for the cost-visible run summary.",
+    )
+
+    # --- Live-trigger path (plan.md §8). A real user's post/reply may trigger a few persona
+    # reactions. Cost is bounded twice over: a fixed per-action cap, plus global daily
+    # token/reaction counters in budget_ledger that short-circuit to "no new reaction". The
+    # daily caps key on the *wall-clock* UTC date — they cap real money, not simulated time. ---
+    live_enabled: bool = Field(
+        default=True,
+        description="Master switch for persona reactions to real user actions. Off -> a post "
+        "still publishes, but no reaction is ever generated.",
+    )
+    live_max_reactions_per_action: int = Field(
+        default=3,
+        description="Hard cap on persona reactions triggered by a single user action.",
+    )
+    live_daily_reaction_cap: int = Field(
+        default=40,
+        description="Global daily cap on triggered reactions (budget_ledger.reactions_used).",
+    )
+    live_daily_token_cap: int = Field(
+        default=50_000,
+        description="Global daily cap on LLM tokens spent (budget_ledger.tokens_used). The "
+        "trigger refuses to start once this is exhausted.",
+    )
+    live_max_tokens_per_reaction: int = Field(
+        default=120,
+        description="Max completion tokens per generated reaction; also the worst-case figure "
+        "the daily cap is pre-flighted against.",
+    )
+    live_temperature: float = Field(
+        default=0.9,
+        description="Sampling temperature for generated persona replies.",
+    )
+    live_max_regenerations: int = Field(
+        default=2,
+        description="Safety-gate retries before a generated reply is dropped.",
     )
 
     # --- Web layer (plan.md §9). CORS origins the FastAPI ranking service accepts; the
