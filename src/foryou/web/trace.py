@@ -15,6 +15,7 @@ Stage counts the proxies can see:
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,6 +33,10 @@ class PipelineTraceData:
     merged: int = 0
     filters: list[tuple[str, int]] = field(default_factory=list)
     selected: int = 0
+    # The per-action weight vector the run actually collapsed scores with. Captured from
+    # ``ctx`` rather than assumed, so the API reports what the pipeline used and can't drift
+    # from the persisted impression rows.
+    weight_vector: Mapping[str, float] = field(default_factory=dict)
 
 
 class _CountingSource:
@@ -59,6 +64,7 @@ class _CountingHydrator:
         self, session: AsyncSession, candidates: list[Candidate], ctx: RankingContext
     ) -> list[Candidate]:
         self._trace.merged = len(candidates)
+        self._trace.weight_vector = ctx.weight_vector
         return await self._inner.hydrate(session, candidates, ctx)
 
 

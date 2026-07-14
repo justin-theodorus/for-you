@@ -6,11 +6,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from foryou.config import settings
-from foryou.web.routers import feed, meta
+from foryou.web.routers import actions, feed, meta
 
 
 def create_app() -> FastAPI:
-    """Build the ranking API: CORS for the Vite dev server, feed + meta routers under /api."""
+    """Build the ranking API: CORS for the Vite dev server, the routers under /api."""
     app = FastAPI(
         title="For You — Ranking API",
         version="0.1.0",
@@ -24,6 +24,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(feed.router, prefix="/api")
+    app.include_router(actions.router, prefix="/api")
     app.include_router(meta.router, prefix="/api")
     return app
 

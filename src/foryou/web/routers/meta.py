@@ -8,6 +8,7 @@ import uuid
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import func, select
 
+from foryou.budget import load_budget
 from foryou.candidates import RankingContext, resolve_now
 from foryou.candidates.sources import TrendingSource
 from foryou.candidates.types import DEFAULT_WEIGHT_VECTOR
@@ -15,6 +16,7 @@ from foryou.db.models import FeedImpression, Follow, Post, TopicCentroid, User
 from foryou.web import serialize
 from foryou.web.deps import SessionDep, resolve_viewer
 from foryou.web.schemas import (
+    BudgetStatus,
     ImpressionView,
     PipelineStageDoc,
     ProfileView,
@@ -188,6 +190,15 @@ async def get_trends(
         velocity = candidate.sources[0].score if candidate.sources else 0.0
         items.append(serialize.trend_item(post, author, velocity))
     return items
+
+
+@router.get("/budget", response_model=BudgetStatus)
+async def get_budget(session: SessionDep) -> BudgetStatus:
+    """Today's LLM spend against today's caps — backs the Operator tab's budget meter.
+
+    Keyed on the real UTC date, not the simulated corpus clock: it caps real money.
+    """
+    return serialize.budget_status(await load_budget(session))
 
 
 @router.get("/impressions/{request_id}", response_model=list[ImpressionView])

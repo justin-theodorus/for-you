@@ -9,18 +9,22 @@ from __future__ import annotations
 
 from typing import Any
 
+from foryou.budget import DailyBudget
 from foryou.candidates import Candidate, Preferences
-from foryou.candidates.types import DEFAULT_WEIGHT_VECTOR
 from foryou.db.models import FeedImpression, Post, User
+from foryou.live import LiveTriggerSummary
 from foryou.web.schemas import (
     ActionScoresView,
     AuthorView,
+    BudgetStatus,
     FeaturesView,
     FeedItem,
     FeedResponse,
     ImpressionView,
+    LivePostResponse,
     PipelineTrace,
     PostSummary,
+    ReactionView,
     ScoreStats,
     SourceTagView,
     StageCount,
@@ -144,9 +148,11 @@ def feed_response(
         viewer=author_view(viewer),
         limit=limit,
         model_version=model_version,
-        # The web feed endpoint does not expose the action weight vector, so it is always
-        # the default (matches dict(ctx.weight_vector) in the persisted impression rows).
-        weight_vector=dict(DEFAULT_WEIGHT_VECTOR),
+        # The vector the run actually collapsed action scores with, captured from the
+        # context by the trace. The API exposes no way to set it, so today it is always the
+        # uniform default — but reading it back from the run means the panel can never lie.
+        # rank_feed(weight_vector=...) remains the seam for offline weight experiments.
+        weight_vector=dict(trace.weight_vector),
         preferences=(preferences or Preferences()).as_dict(),
         trace=pipeline_trace(trace, candidates),
         items=items,
@@ -177,6 +183,45 @@ def trend_item(post: Post, author: User, velocity: float) -> TrendItem:
         reply_count=post.reply_count,
         repost_count=post.repost_count,
         quote_count=post.quote_count,
+    )
+
+
+def budget_status(budget: DailyBudget) -> BudgetStatus:
+    return BudgetStatus(
+        day=budget.day,
+        tokens_used=budget.tokens_used,
+        tokens_cap=budget.tokens_cap,
+        tokens_remaining=budget.tokens_remaining,
+        reactions_used=budget.reactions_used,
+        reactions_cap=budget.reactions_cap,
+        reactions_remaining=budget.reactions_remaining,
+        exhausted=budget.exhausted,
+    )
+
+
+def live_post_response(
+    post: Post, author: User, summary: LiveTriggerSummary, *, model_version: str
+) -> LivePostResponse:
+    return LivePostResponse(
+        post=post_summary(post),
+        author=author_view(author),
+        reactions=[
+            ReactionView(
+                persona_id=reaction.persona_id,
+                persona_handle=reaction.persona_handle,
+                post_id=reaction.post_id,
+                content=reaction.content,
+            )
+            for reaction in summary.reactions
+        ],
+        rejected=list(summary.rejected),
+        engagements=summary.engagements,
+        tokens_used=summary.tokens_used,
+        estimated_usd=summary.estimated_usd,
+        capped=summary.capped,
+        cap_reason=summary.cap_reason,
+        model_version=model_version,
+        budget=budget_status(summary.budget),
     )
 
 

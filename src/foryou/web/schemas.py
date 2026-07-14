@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from foryou.candidates import Preferences
 from foryou.config import settings
+from foryou.personas.profiles import MAX_POST_CHARS
 
 # --- Preference / request inputs -------------------------------------------------------
 
@@ -233,3 +234,66 @@ class ImpressionView(BaseModel):
     preference_multiplier: float | None
     mmr_penalty: float | None
     scoring_model_version: str | None
+
+
+# --- Live-trigger path (plan.md §8) ----------------------------------------------------
+
+
+class PostCreate(BaseModel):
+    """Body for ``POST /api/posts``: a real user's post, optionally triggering reactions.
+
+    ``content`` is bounded here at the boundary *and* again in code when personas generate
+    (``profiles.MAX_POST_CHARS``) — the same limit applies to humans and models.
+    """
+
+    handle: str | None = None
+    user_id: uuid.UUID | None = None
+    content: str = Field(min_length=1, max_length=MAX_POST_CHARS)
+    in_reply_to_id: uuid.UUID | None = None
+    topics: list[str] | None = None
+    trigger_reactions: bool = True
+
+    @field_validator("content")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("content must not be blank")
+        return value.strip()
+
+
+class ReactionView(BaseModel):
+    """One persona reaction — a generated reply post."""
+
+    persona_id: uuid.UUID
+    persona_handle: str
+    post_id: uuid.UUID
+    content: str
+
+
+class BudgetStatus(BaseModel):
+    """Today's spend against today's caps (``budget_ledger``, keyed on the real UTC date)."""
+
+    day: datetime.date
+    tokens_used: int
+    tokens_cap: int
+    tokens_remaining: int
+    reactions_used: int
+    reactions_cap: int
+    reactions_remaining: int
+    exhausted: bool
+
+
+class LivePostResponse(BaseModel):
+    """What a live trigger did, and exactly what it cost."""
+
+    post: PostSummary
+    author: AuthorView
+    reactions: list[ReactionView]
+    rejected: list[str]  # safety-gate categories, one per dropped reply
+    engagements: int
+    tokens_used: int
+    estimated_usd: float
+    capped: bool
+    cap_reason: str | None
+    model_version: str
+    budget: BudgetStatus
