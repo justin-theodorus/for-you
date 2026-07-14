@@ -12,10 +12,13 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 
 import pytest_asyncio
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from foryou.budget import today
 from foryou.config import settings
+from foryou.db.models import BudgetLedger
 
 
 @pytest_asyncio.fixture
@@ -33,6 +36,13 @@ async def session() -> AsyncIterator[AsyncSession]:
                 join_transaction_mode="create_savepoint",
             )
             try:
+                # budget_ledger has no FK to users, so a row committed by a prior
+                # `make live` / `make personas` survives the TRUNCATE users CASCADE that
+                # `make test-clean` runs — and would silently skew every absolute
+                # token/reaction assertion. Clear today's row inside the transaction;
+                # the rollback below puts it back.
+                await db.execute(delete(BudgetLedger).where(BudgetLedger.day == today()))
+                await db.flush()
                 yield db
             finally:
                 await db.close()
