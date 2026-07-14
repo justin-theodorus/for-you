@@ -6,10 +6,15 @@ LLM-generated) and everything is a pure function of ``config.seed`` — the same
 yields an identical world (including row ids), so corpora are snapshot-able for
 ranking experiments.
 
-LLM-authored persona *content* now lives in ``foryou.personas`` (plan.md §6), which
-reuses this module's determinism spine (``det_uuid``, ``BASE_TIME``) and the shared
-``build_engagements`` heuristic so the two content paths can't drift. Reply/quote
-*posts* and thread reconstruction are still deferred (plan.md §7).
+LLM-authored persona *content* lives in ``foryou.personas`` (plan.md §6) and batch world
+growth in ``foryou.simulate`` (plan.md §7); both reuse this module's determinism spine
+(``det_uuid``, ``BASE_TIME``) and the shared ``build_engagements`` heuristic so the content
+paths can't drift.
+
+Every post the seeder writes is ``kind=post`` — by design, not omission. The conversation
+graph (reply posts, ``in_reply_to_id`` / ``conversation_id``) is populated only by the
+live-trigger path (``foryou.live``, plan.md §8), where a real user's post draws persona
+replies; a synthetic corpus needs no threads to exercise ranking.
 """
 
 from __future__ import annotations

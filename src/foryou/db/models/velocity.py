@@ -16,8 +16,10 @@ from foryou.db.mixins import pg_enum, updated_at
 class PostVelocity(Base):
     """Engagement count for a post over a fixed rolling window.
 
-    Refreshed in batch by the world simulation (later slice); here it is schema
-    plus indexing only.
+    Refreshed wholesale in batch by the world simulation
+    (``foryou.simulate.refresh_post_velocity``, plan.md §7). Deliberately *not* on the read
+    path: ``TrendingSource`` aggregates the engagement log live so a live-triggered reaction
+    (§8) trends immediately instead of waiting for the next batch — see its docstring.
     """
 
     __tablename__ = "post_velocity"

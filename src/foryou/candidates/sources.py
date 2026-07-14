@@ -138,8 +138,12 @@ class OutOfNetworkSource:
 class TrendingSource:
     """Posts with the most engagement in a recent window off the reference clock.
 
-    Aggregates the engagement log on the fly (the ``post_velocity`` table exists but
-    nothing populates it yet). ``report`` is excluded so flagged posts don't trend.
+    Aggregates the ``engagements`` log on the fly rather than reading ``post_velocity``, and
+    that is a choice, not a stopgap: the batch simulation (plan.md §7) *does* populate that
+    table, but it is a point-in-time snapshot, so a live-triggered reaction (plan.md §8)
+    would not trend until the next ``make simulate``. Live aggregation also sidesteps the
+    window mismatch — ``VelocityWindow`` offers h1/h6/h24, while the default trending window
+    is 48h. ``report`` is excluded so flagged posts don't trend.
     """
 
     name = SourceName.TRENDING

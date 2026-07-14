@@ -29,7 +29,11 @@ class SourceName(enum.StrEnum):
 # Action vocabulary scored per candidate; also the keys of a weight vector.
 ACTION_KEYS: tuple[str, ...] = ("like", "reply", "repost", "quote", "dwell")
 
-# Uniform placeholder weights — the seam the preference layer (plan.md §4) replaces.
+# Uniform per-action weights: the score is a plain sum of the predicted probabilities.
+# The preference layer (plan.md §4) deliberately does NOT tune this — it applies a
+# transparent post-scoring `preference_multiplier` instead, which keeps the trained model
+# (§3) valid with no retrain. A non-uniform vector stays available for offline weight
+# experiments via `rank_feed(weight_vector=...)`; nothing in the UI sets one.
 DEFAULT_WEIGHT_VECTOR: Mapping[str, float] = {key: 1.0 for key in ACTION_KEYS}
 
 
@@ -83,8 +87,9 @@ class Candidate:
     """A post moving through the pipeline, accreting provenance, features, and scores.
 
     Fields are filled progressively: sources at generation, the hydrated block after
-    ``Hydrator``, and the scored block after ``Scorer``/``Selector``. ``mmr_penalty``
-    stays ``None`` until the diversification stage (plan.md §5) is built.
+    ``Hydrator``, and the scored block after ``Scorer``/``Selector``. ``mmr_penalty`` is set
+    by ``MMRSelector`` (plan.md §5) and stays ``None`` for a candidate the selector dropped
+    or for a pure-relevance ``TopKSelector`` run.
     """
 
     post_id: uuid.UUID
@@ -131,8 +136,8 @@ class RankingContext:
     # Stamped by the pipeline from the active scorer so the impression log records which
     # model produced the scores. None until the pipeline sets it (e.g. bare test contexts).
     scoring_model_version: str | None = None
-    # Per-request MMR relevance weight (plan.md §5). None -> the selector's configured
-    # default; the live preference slider (plan.md §4) will populate this.
+    # Per-request MMR relevance weight (plan.md §5), set from the exploration slider
+    # (plan.md §4) or an explicit rank_feed arg. None -> the selector's configured default.
     mmr_lambda: float | None = None
 
     # --- Preference layer (plan.md §4). Resolved from the request's Preferences by

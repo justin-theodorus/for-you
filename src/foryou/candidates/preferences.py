@@ -1,9 +1,9 @@
 """User-facing preference sliders and their pure mapping onto pipeline knobs (plan.md §4).
 
-:class:`Preferences` is the normalized surface a caller tunes (CLI now, web app later):
-every slider is in ``[0, 1]`` with ``0.5`` the neutral centre, and ``NEUTRAL`` (all
-defaults) resolves to a no-op so a neutral request reproduces the untuned feed exactly —
-which is what keeps the trained scorer (plan.md §3) valid without a retrain.
+:class:`Preferences` is the normalized surface a caller tunes (the CLI's flags and the web
+app's slider rail): every slider is in ``[0, 1]`` with ``0.5`` the neutral centre, and
+``NEUTRAL`` (all defaults) resolves to a no-op so a neutral request reproduces the untuned
+feed exactly — which is what keeps the trained scorer (plan.md §3) valid without a retrain.
 
 ``resolve_preferences`` is pure (no I/O): it maps the sliders to concrete knobs
 (:class:`ResolvedPreferences`) the context threads into the stages. The topic-query

@@ -1,7 +1,8 @@
 """Feed-impression explainability log.
 
-Forward-looking: written by the ranking service at scoring time so the "Why this
-post?" panel renders with no re-derivation. Nothing writes here in this slice.
+Written by ``ImpressionLogger`` (the pipeline's side-effect stage) at scoring time and read
+back by ``GET /api/impressions/{request_id}``, so the "Why this post?" panel renders logged
+data with no re-derivation — the plan.md audit requirement.
 """
 
 from __future__ import annotations
