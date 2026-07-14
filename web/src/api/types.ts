@@ -122,6 +122,68 @@ export interface TrendItem {
   quote_count: number;
 }
 
+// --- Live-trigger path (plan.md §8) ---
+
+export interface PostSummary {
+  post_id: string;
+  content: string;
+  created_at: string;
+  topics: string[];
+  like_count: number;
+  reply_count: number;
+  repost_count: number;
+  quote_count: number;
+}
+
+export interface Reaction {
+  persona_id: string;
+  persona_handle: string;
+  post_id: string;
+  content: string;
+}
+
+export interface BudgetStatus {
+  day: string;
+  tokens_used: number;
+  tokens_cap: number;
+  tokens_remaining: number;
+  reactions_used: number;
+  reactions_cap: number;
+  reactions_remaining: number;
+  exhausted: boolean;
+}
+
+export interface LivePostResponse {
+  post: PostSummary;
+  author: Author;
+  reactions: Reaction[];
+  /** Safety-gate categories, one per dropped reply. */
+  rejected: string[];
+  engagements: number;
+  tokens_used: number;
+  estimated_usd: number;
+  capped: boolean;
+  cap_reason: string | null;
+  model_version: string;
+  budget: BudgetStatus;
+}
+
+export interface PostCreateRequest {
+  handle: string;
+  content: string;
+  in_reply_to_id?: string;
+  topics?: string[];
+  trigger_reactions?: boolean;
+}
+
+/** Why the trigger generated fewer reactions than asked, in plain words. */
+export const CAP_REASONS: Record<string, string> = {
+  disabled: "Live reactions are switched off",
+  not_requested: "Reactions were not requested",
+  daily_token_cap: "Daily token budget is spent",
+  daily_reaction_cap: "Daily reaction budget is spent",
+};
+
 export const ACTION_KEYS = ["like", "reply", "repost", "quote", "dwell"] as const;
 export type ActionKey = (typeof ACTION_KEYS)[number];
 

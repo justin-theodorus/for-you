@@ -1,0 +1,81 @@
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.input {
+  width: 100%;
+  resize: vertical;
+  min-height: 84px;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.toggle input:disabled {
+  cursor: not-allowed;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.counter {
+  font-size: var(--fs-sm);
+  color: var(--ink-dim);
+}
+.counterOver {
+  color: var(--penalty);
+  font-weight: 600;
+}
+.post {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.post:hover:not(:disabled) {
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+.post:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--warn);
+}

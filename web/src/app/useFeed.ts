@@ -37,6 +37,9 @@ export interface FeedController {
   selected: FeedItem | null;
   setSelected: (item: FeedItem | null) => void;
   neutral: boolean;
+  /** Re-rank and re-read trends. The world only changes when someone writes to it —
+   *  publishing a post (plan.md §8) is the one thing that does. */
+  refresh: () => Promise<void>;
 }
 
 export function useFeed(): FeedController {
@@ -115,6 +118,18 @@ export function useFeed(): FeedController {
     setSelectedId(item?.post_id ?? null);
   }, []);
 
+  // Re-rank against the mutated world after a write, and pull fresh trends: a live post's
+  // reactions add engagement, which moves the velocity window.
+  const refresh = useCallback(async () => {
+    if (!viewer) return;
+    await runFeed(viewer, prefs);
+    try {
+      setTrends(await fetchTrends());
+    } catch {
+      // Trends are a nice-to-have; a stale panel shouldn't surface an error.
+    }
+  }, [viewer, prefs, runFeed]);
+
   return {
     users,
     topics,
@@ -130,5 +145,6 @@ export function useFeed(): FeedController {
     selected,
     setSelected,
     neutral: isNeutral(prefs),
+    refresh,
   };
 }

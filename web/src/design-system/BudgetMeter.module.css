@@ -1,0 +1,19 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.foot {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--ink-dim);
+}
+.exhausted {
+  color: var(--penalty);
+  font-weight: 600;
+}
+.empty {
+  font-size: var(--fs-sm);
+  color: var(--ink-dim);
+  padding: var(--space-2) 0;
+}

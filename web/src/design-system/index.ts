@@ -8,8 +8,11 @@ import "./tokens.css";
 
 export { Avatar, Meter, Panel, Pill, SourceBadge, Stat } from "./primitives";
 export { ActionScoreBars } from "./ActionScoreBars";
+export { BudgetMeter } from "./BudgetMeter";
+export { Composer } from "./Composer";
 export { FeedCard } from "./FeedCard";
 export { ReaderFeedCard } from "./ReaderFeedCard";
+export { ReactionsPanel } from "./ReactionsPanel";
 export { WhyThisPostPanel } from "./WhyThisPostPanel";
 export { PreferenceRail } from "./PreferenceRail";
 export { PipelinePanel } from "./PipelinePanel";

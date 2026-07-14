@@ -2,8 +2,11 @@
 // (set by the compose `web` service to follow API_PORT); defaults to :8000.
 
 import type {
+  BudgetStatus,
   FeedResponse,
+  LivePostResponse,
   PipelineStageDoc,
+  PostCreateRequest,
   Preferences,
   TrendItem,
   UserSummary,
@@ -66,4 +69,18 @@ export function fetchPipeline(): Promise<PipelineStageDoc[]> {
 
 export function fetchTrends(): Promise<TrendItem[]> {
   return request<TrendItem[]>("/api/trends");
+}
+
+// --- Live-trigger path (plan.md §8) ---
+
+/** Publish a post; the server may trigger a few budget-capped persona reactions. */
+export function createPost(body: PostCreateRequest): Promise<LivePostResponse> {
+  return request<LivePostResponse>("/api/posts", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchBudget(): Promise<BudgetStatus> {
+  return request<BudgetStatus>("/api/budget");
 }
