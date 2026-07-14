@@ -19,13 +19,13 @@ import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 
-from sqlalchemy import func, select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from foryou.budget import record_spend
 from foryou.config import settings
 from foryou.db.enums import PostKind
-from foryou.db.models import BudgetLedger, Post, User
+from foryou.db.models import Post, User
 from foryou.personas.content import generate_post_text
 from foryou.personas.engagement import EngagementActor, build_engagements_for_posts
 from foryou.personas.llm import LLMClient
@@ -91,25 +91,6 @@ def _plan_posts(
             )
             specs.append(_PostSpec(post_id, user.id, profile, topic, created_at))
     return specs
-
-
-async def _record_budget(session: AsyncSession, tokens_used: int) -> None:
-    """Upsert today's token spend into ``budget_ledger`` (cost accounting)."""
-    # Component 8 seam: the hard daily-cap short-circuit will read today's row here
-    # *before* generating and refuse to start once the cap is exceeded.
-    if tokens_used <= 0:
-        return
-    today = datetime.datetime.now(datetime.UTC).date()
-    stmt = pg_insert(BudgetLedger).values(day=today, tokens_used=tokens_used)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=[BudgetLedger.day],
-        set_={
-            "tokens_used": BudgetLedger.tokens_used + stmt.excluded.tokens_used,
-            "updated_at": func.now(),
-        },
-    )
-    await session.execute(stmt)
-    await session.flush()
 
 
 async def generate_personas(
@@ -189,7 +170,8 @@ async def generate_personas(
     session.add_all(engagements)
     await session.flush()
 
-    await _record_budget(session, tokens_used)
+    # Batch generation spends tokens but triggers no live reactions (plan.md §8 owns those).
+    await record_spend(session, tokens=tokens_used, reactions=0)
 
     return GenerationSummary(
         posts_inserted=len(posts),

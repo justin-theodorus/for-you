@@ -1,7 +1,11 @@
-"""Daily budget ledger for the bounded live-trigger path.
+"""Daily budget ledger for the bounded live-trigger path (plan.md §8).
 
-Forward-looking: the live-trigger path (later slice) increments these counters
-and short-circuits once a hard daily cap is hit.
+Written through :mod:`foryou.budget`: the batch persona generator (§6) adds tokens, and the
+live-trigger path (§8) adds tokens *and* reactions, then reads this row back before every
+trigger and short-circuits to "no new reaction" once a cap is hit.
+
+The day key is the real UTC date, not the simulated corpus clock — these counters cap real
+API spend, so they reset on real calendar days.
 """
 
 from __future__ import annotations
