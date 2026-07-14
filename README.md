@@ -54,6 +54,37 @@ multiplier, MMR penalty) and read the live pipeline-stage trace. If host port 80
 taken, set `API_PORT` in `.env` — the frontend follows it automatically. The backend is
 `src/foryou/web/` (FastAPI over `rank_feed`); the frontend + its design system are in `web/`.
 
+## Live-trigger path (plan.md §8)
+
+The **Operator** tab is the only place the world can be written to. Post something and a
+small number of personas reply for real — then the feed re-ranks against a world that
+actually changed.
+
+Cost is bounded by construction, never by convention:
+
+- **A fixed cap per action** (`LIVE_MAX_REACTIONS_PER_ACTION`, default 3).
+- **Global daily counters** in `budget_ledger`, read *before* any model is called. Once
+  spent, the trigger short-circuits to "no new reaction" — the post still publishes, but
+  zero tokens are spent and zero API calls are made.
+- **Guardrails in code, not the prompt**: which personas react and on what topic is decided
+  in Python, and every generated reply is truncated and passed through the rule-based safety
+  gate before it can be inserted. A rejected reply is still *charged* — the model ran.
+
+```bash
+# Same path from the CLI, no browser needed (--fake forces the offline LLM).
+docker compose run --rm app python scripts/live_trigger.py \
+    --handle reader_0 --content "shipping the ranking inspector today" --fake
+```
+
+With `OPENAI_API_KEY` set it calls `gpt-4o-mini`; unset, it falls back to a deterministic
+offline `FakeLLM`, so the whole component runs at zero cost. New posts and replies are
+embedded **inline**, so they are rankable candidates immediately — no follow-up
+`make embeddings`.
+
+Live content is timestamped on the **corpus clock** (`max(posts.created_at)` plus a beat),
+not wall-clock. A wall-clock post would drag the ranking clock past the seeded world, age the
+whole corpus out of the recency window, and empty the trending window.
+
 ## Schema
 
 | Table | Purpose |
@@ -66,9 +97,9 @@ taken, set `API_PORT` in `.env` — the frontend follows it automatically. The b
 | `post_embeddings` | Per-post content vectors (`Vector(384)`). |
 | `user_embeddings` | Per-user engagement-history centroid. |
 | `topic_centroids` | Per-topic centroid for the topic sliders. |
-| `post_velocity` | Rolling engagement-velocity aggregates (trends), refreshed in batch by the world simulation (`make simulate`). |
+| `post_velocity` | Rolling engagement-velocity aggregates, refreshed in batch by the world simulation (`make simulate`). |
 | `feed_impressions` | Explainability log written by the ranking service — backs "Why this post?". |
-| `budget_ledger` | Daily cap for the bounded live-trigger path. |
+| `budget_ledger` | Daily token / reaction counters enforcing the live-trigger cap (`make live`). |
 
 Embeddings and velocity live in **dedicated tables** rather than columns on
 `posts`/`users`, so the vector index and high-churn velocity writes stay isolated
