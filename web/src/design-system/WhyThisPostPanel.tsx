@@ -92,7 +92,7 @@ export function WhyThisPostPanel({ item, weightVector }: WhyThisPostPanelProps) 
             <span className={styles.formulaVal}>{fixed(collapse, 3)}</span>
           </div>
           <div className={styles.formulaRow}>
-            <span>× preference multiplier (§4)</span>
+            <span>× preference multiplier</span>
             <span className={styles.formulaVal}>×{fixed(mult, 2)}</span>
           </div>
           <div className={styles.formulaFinal}>
@@ -101,7 +101,7 @@ export function WhyThisPostPanel({ item, weightVector }: WhyThisPostPanelProps) 
           </div>
         </div>
         <div className={styles.penaltyBlock}>
-          <span>MMR diversity penalty (§5)</span>
+          <span>MMR diversity penalty</span>
           <span className={`mono ${penalty > 0 ? styles.penalty : ""}`}>
             {penalty > 0 ? `−${fixed(penalty, 3)}` : "0.000"}
           </span>
