@@ -11,3 +11,20 @@ __pycache__
 *.egg-info
 .DS_Store
 plan.md
+deploy-plan.md
+
+# Frontend. node_modules must not cross the host/container boundary (platform-specific
+# binaries), and a stale local `web/dist` would otherwise be copied into the final stage
+# and shadow the one the `web` stage just built.
+web/node_modules
+web/dist
+web/dist-lib
+web/.vite
+
+# Tests are bind-mounted for the dev target and have no place in the serving image.
+tests
+
+# design-sync working dirs (see CLAUDE.md).
+.ds-sync
+ds-bundle
+.design-sync

@@ -17,7 +17,11 @@ services:
       retries: 10
 
   app:
-    build: .
+    # `dev` layers the test/lint/train toolchain onto the production serving image; the
+    # default (final) stage deliberately has neither pytest nor sklearn.
+    build:
+      context: .
+      target: dev
     env_file:
       - .env
     depends_on:
@@ -33,7 +37,9 @@ services:
   # published port (unlike `app`, which is invoked ephemerally via `run --rm`). Needs a
   # seeded + embedded + trained corpus first (make seed/embeddings/centroids/train).
   api:
-    build: .
+    build:
+      context: .
+      target: dev
     env_file:
       - .env
     depends_on:
