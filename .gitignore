@@ -11,9 +11,13 @@ venv/
 # Environment
 .env
 
-# Trained model artifacts (reproduce with `make train`)
-# Anchored to repo root so it doesn't also ignore src/foryou/db/models.
-/models/
+# Trained model artifacts. Anchored to repo root so this doesn't also ignore
+# src/foryou/db/models. The serving artifact is committed and baked into the
+# production image: the deployed API has no training path, and default_scorer()
+# falls back to the heuristic *silently* if the file is missing. Ignore the
+# directory's contents, not the directory, so the negation below can apply.
+/models/*
+!/models/scoring_model.json
 
 # Frontend (plan.md §9)
 web/node_modules/
