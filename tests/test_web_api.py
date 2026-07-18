@@ -15,7 +15,7 @@ import httpx
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from foryou.config import settings
@@ -25,6 +25,7 @@ from foryou.embeddings import generate_embeddings, generate_topic_centroids
 from foryou.personas import FakeLLM
 from foryou.seed import SeedConfig, seed_world
 from foryou.web.app import create_app
+from foryou.web.auth import OPERATOR_HEADER
 from foryou.web.deps import get_encoder, get_llm_client
 from tests.test_encoder import FakeEncoder
 
@@ -440,3 +441,116 @@ async def test_invalid_content_is_rejected(
     )
 
     assert response.status_code == 422
+
+
+# --- The Operator write gate -----------------------------------------------------------
+#
+# Every test above runs with `operator_secret` unset, so they exercise the open default and
+# needed no changes. These four pin the gated behaviour.
+
+
+async def test_missing_secret_is_rejected_and_writes_nothing(
+    client: httpx.AsyncClient,
+    session: AsyncSession,
+    seeded: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A 401 must be a *pre*-write rejection, not a rollback after the LLM already ran."""
+    monkeypatch.setattr(settings, "operator_secret", "s3cret")
+    before = await session.scalar(select(func.count()).select_from(Post))
+
+    response = await client.post(
+        "/api/posts", json={"handle": await _reader_handle(session), "content": "let me in"}
+    )
+
+    assert response.status_code == 401
+    assert await session.scalar(select(func.count()).select_from(Post)) == before
+
+
+async def test_wrong_secret_is_rejected(
+    client: httpx.AsyncClient,
+    session: AsyncSession,
+    seeded: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "operator_secret", "s3cret")
+
+    response = await client.post(
+        "/api/posts",
+        json={"handle": await _reader_handle(session), "content": "guessing"},
+        headers={OPERATOR_HEADER: "not-the-secret"},
+    )
+
+    assert response.status_code == 401
+
+
+async def test_correct_secret_publishes_and_still_reacts(
+    client: httpx.AsyncClient,
+    session: AsyncSession,
+    seeded: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The gate is only a boundary check: an unlocked caller gets the full §8 path."""
+    monkeypatch.setattr(settings, "operator_secret", "s3cret")
+
+    response = await client.post(
+        "/api/posts",
+        json={"handle": await _reader_handle(session), "content": "unlocked and posting"},
+        headers={OPERATOR_HEADER: "s3cret"},
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["post"]["content"] == "unlocked and posting"
+    assert 0 < len(body["reactions"]) <= settings.live_max_reactions_per_action
+
+
+async def test_health_never_requires_the_secret(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The platform health check must not 401, or a gated deploy fails its own probe."""
+    monkeypatch.setattr(settings, "operator_secret", "s3cret")
+
+    assert (await client.get("/api/health")).status_code == 200
+
+
+async def test_operator_endpoint_validates_without_spending_a_post(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "operator_secret", "s3cret")
+
+    assert (await client.get("/api/operator")).status_code == 401
+    unlocked = await client.get("/api/operator", headers={OPERATOR_HEADER: "s3cret"})
+    assert unlocked.status_code == 200
+    assert unlocked.json() == {"unlocked": True}
+
+
+async def test_config_reports_the_gate_without_leaking_the_secret(
+    client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "operator_secret", "s3cret")
+
+    body = (await client.get("/api/config")).json()
+
+    assert body == {"operator_required": True, "live_enabled": settings.live_enabled}
+
+
+async def test_config_reports_open_writes_when_unset(client: httpx.AsyncClient) -> None:
+    assert (await client.get("/api/config")).json()["operator_required"] is False
+
+
+# --- Static SPA hosting ----------------------------------------------------------------
+
+
+async def test_unmatched_api_path_404s_rather_than_serving_the_spa(
+    client: httpx.AsyncClient,
+) -> None:
+    """The SPA catch-all matches every path shape, so /api/* needs an explicit exemption.
+
+    Without it an unknown endpoint answers index.html with a 200 and a client bug surfaces
+    as a JSON parse error instead of a 404. This only bites when web/dist exists, which is
+    exactly the production image.
+    """
+    response = await client.get("/api/no_such_endpoint")
+
+    assert response.status_code == 404

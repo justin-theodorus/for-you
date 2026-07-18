@@ -5,24 +5,33 @@ trigger a few budget-capped persona reactions; ``foryou.live`` owns all of that 
 this router just resolves the actor, calls it, and commits.
 
 Like the feed endpoint, the actor is asserted in the request body (``handle`` / ``user_id``)
-— this demo has no auth, and adding one here would be the only authenticated surface in the
-app. That is a deliberate scope call, not an oversight.
+— there is no per-user identity here, and the chosen actor is not authenticated. What *is*
+gated is the write itself: ``require_operator`` (``foryou.web.auth``) checks a single shared
+secret, because this endpoint spends real tokens on a public deployment. Unset the secret
+and the gate is open, which is the local default. The gate lives purely at this boundary —
+``foryou.live`` is unchanged, and its budget_ledger caps still bound an unlocked caller.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from foryou.db.models import Post
 from foryou.live import publish_and_react
 from foryou.web import serialize
+from foryou.web.auth import require_operator
 from foryou.web.deps import EncoderDep, LLMClientDep, SessionDep, resolve_viewer
 from foryou.web.schemas import LivePostResponse, PostCreate
 
 router = APIRouter(tags=["actions"])
 
 
-@router.post("/posts", response_model=LivePostResponse, status_code=201)
+@router.post(
+    "/posts",
+    response_model=LivePostResponse,
+    status_code=201,
+    dependencies=[Depends(require_operator)],
+)
 async def create_post(
     body: PostCreate,
     session: SessionDep,

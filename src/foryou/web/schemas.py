@@ -283,6 +283,19 @@ class BudgetStatus(BaseModel):
     exhausted: bool
 
 
+class AppConfig(BaseModel):
+    """What the frontend needs to render the Operator tab's locked state without probing."""
+
+    operator_required: bool
+    live_enabled: bool
+
+
+class OperatorStatus(BaseModel):
+    """Returned only when the operator gate passes — the Unlock button's validation target."""
+
+    unlocked: bool
+
+
 class LivePostResponse(BaseModel):
     """What a live trigger did, and exactly what it cost."""
 

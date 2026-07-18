@@ -180,6 +180,13 @@ class Settings(BaseSettings):
         default=["http://localhost:5173", "http://127.0.0.1:5173"],
         description="Allowed browser origins for the ranking API (JSON array in env).",
     )
+    operator_secret: str | None = Field(
+        default=None,
+        description="Shared secret required by the Operator write endpoint (POST /api/posts). "
+        "Unset -> writes are open, which is the local-dev default. A public deployment sets "
+        "it. It is a speed bump, not a security boundary: the browser holds it, and the "
+        "budget_ledger daily caps are what actually bound spend.",
+    )
 
 
 settings = Settings()

@@ -5,19 +5,23 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 
 from foryou.budget import load_budget
 from foryou.candidates import RankingContext, resolve_now
 from foryou.candidates.sources import TrendingSource
 from foryou.candidates.types import DEFAULT_WEIGHT_VECTOR
+from foryou.config import settings
 from foryou.db.models import FeedImpression, Follow, Post, TopicCentroid, User
 from foryou.web import serialize
+from foryou.web.auth import require_operator
 from foryou.web.deps import SessionDep, resolve_viewer
 from foryou.web.schemas import (
+    AppConfig,
     BudgetStatus,
     ImpressionView,
+    OperatorStatus,
     PipelineStageDoc,
     ProfileView,
     TrendItem,
@@ -80,7 +84,23 @@ _PIPELINE_STAGES: list[PipelineStageDoc] = [
 
 @router.get("/health")
 async def health() -> dict[str, str]:
+    """Unauthenticated by design — this is the platform's health-check target."""
     return {"status": "ok"}
+
+
+@router.get("/config", response_model=AppConfig)
+async def get_config() -> AppConfig:
+    """Deployment shape the frontend renders against (never the secret itself)."""
+    return AppConfig(
+        operator_required=bool(settings.operator_secret),
+        live_enabled=settings.live_enabled,
+    )
+
+
+@router.get("/operator", response_model=OperatorStatus, dependencies=[Depends(require_operator)])
+async def check_operator() -> OperatorStatus:
+    """Validate an operator secret without spending a post to find out it was wrong."""
+    return OperatorStatus(unlocked=True)
 
 
 @router.get("/users", response_model=list[UserSummary])
