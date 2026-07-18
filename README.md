@@ -85,6 +85,65 @@ Live content is timestamped on the **corpus clock** (`max(posts.created_at)` plu
 not wall-clock. A wall-clock post would drag the ranking clock past the seeded world, age the
 whole corpus out of the recency window, and empty the trending window.
 
+## Deploy (Fly.io)
+
+One Fly app: the FastAPI process serves the built SPA itself, so the demo is same-origin —
+no CORS, one cert, one secret set. Reader and Analyst are open to anyone; the Operator tab
+stays visible but its composer is behind a shared secret, because that path spends real
+tokens.
+
+```bash
+# 1. A Postgres to point at. On Fly Managed Postgres, enable the `vector` extension on the
+#    cluster's Extensions page (citext ships with the default PG16 distribution).
+fly launch --no-deploy          # creates the app from the committed fly.toml
+fly mpg create
+
+# 2. Secrets, in ONE call: each `fly secrets set` restarts the machine, and the release
+#    command needs ALEMBIC_DATABASE_URL to already be there.
+fly secrets set \
+  DATABASE_URL="postgresql+asyncpg://USER:PASS@HOST:5432/DB" \
+  ALEMBIC_DATABASE_URL="postgresql+psycopg://USER:PASS@HOST:5432/DB" \
+  OPENAI_API_KEY="sk-..." \
+  OPERATOR_SECRET="$(openssl rand -hex 16)"
+
+# 3. Deploy. The release command runs `alembic upgrade head`.
+make deploy
+
+# 4. Once, after the first deploy: seed + embed + centroids. Idempotent, so re-running is a
+#    no-op rather than a mistake.
+make fly-bootstrap
+```
+
+**Set both database URLs explicitly.** Don't rely on Fly's auto-injected `DATABASE_URL`: it
+is a bare `postgres://`, which SQLAlchemy rejects, and a `?sslmode=require` suffix breaks
+asyncpg (which spells it `ssl=`, not `sslmode=`). The two URLs use different drivers by
+design — asyncpg for the app, psycopg for Alembic.
+
+Then open the app: Reader and Analyst should rank immediately. To write, open **Operator**
+and enter the `OPERATOR_SECRET` you generated.
+
+**What the password is and isn't.** It is a speed bump that stops a passer-by from idly
+spending your API key. It is typed into a browser and sent as a header, so anyone you give it
+to can read it back. The actual cost bound is the same one the CLI has: the `budget_ledger`
+daily token/reaction caps, enforced before any model call, for locked and unlocked callers
+alike. If a public write path is going to exist, rotate the key first.
+
+A few deployment details that are load-bearing rather than incidental:
+
+- **The trained scorer artifact is committed** (`models/scoring_model.json`, ~2KB) and baked
+  into the image. `default_scorer()` falls back to the heuristic *silently* when the file is
+  missing, so a deploy without it would serve a worse feed and look fine. To confirm a live
+  deploy is really using the trained model, check that `/api/feed`'s `model_version` is not
+  `heuristic`.
+- **The initial migration creates its own extensions.** `db/init/01-extensions.sql` only runs
+  via the Compose image's init hook, which no managed Postgres has.
+- **`fly.toml` pins `build-target = "final"`.** The Dockerfile's last stage is `dev`, so an
+  untargeted build would ship the test toolchain and a `bash` CMD.
+- **The frontend is built with `VITE_API_BASE_URL=""`** so its requests go out relative. If
+  you change the build, verify with:
+  `docker build --target final -t foryou . && docker run --rm --entrypoint sh foryou -c "grep -r 'localhost:8000' /app/web/dist/"`
+  — a hit means the bundle points at localhost and the deployed app talks to nothing.
+
 ## Schema
 
 | Table | Purpose |
