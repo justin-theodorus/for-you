@@ -30,7 +30,7 @@ docker compose run --rm app python scripts/verify_smoke.py
 docker compose run --rm app pytest
 ```
 
-## Ranking-inspector demo (plan.md §9)
+## Ranking-inspector demo
 
 A live web app that serves the feed straight from the ranking engine, re-ranks on every
 preference change, and explains each result. It's a *ranking inspector*, not an X clone:
@@ -54,7 +54,7 @@ multiplier, MMR penalty) and read the live pipeline-stage trace. If host port 80
 taken, set `API_PORT` in `.env` — the frontend follows it automatically. The backend is
 `src/foryou/web/` (FastAPI over `rank_feed`); the frontend + its design system are in `web/`.
 
-## Live-trigger path (plan.md §8)
+## Live-trigger path
 
 The **Operator** tab is the only place the world can be written to. Post something and a
 small number of personas reply for real — then the feed re-ranks against a world that
