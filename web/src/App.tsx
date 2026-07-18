@@ -15,6 +15,7 @@ import { BudgetMeter } from "./design-system/BudgetMeter";
 import { Composer } from "./design-system/Composer";
 import { FeedCard } from "./design-system/FeedCard";
 import { sourceColor } from "./design-system/format";
+import { OperatorLock } from "./design-system/OperatorLock";
 import { PipelinePanel } from "./design-system/PipelinePanel";
 import { PreferenceRail } from "./design-system/PreferenceRail";
 import { ReactionsPanel } from "./design-system/ReactionsPanel";
@@ -143,17 +144,29 @@ export default function App() {
 
             {op.error && <div className={styles.banner}>{op.error}</div>}
 
-            <RailSection title="Compose" meta={op.react ? "reactions on" : "reactions off"}>
-              <Composer
-                value={op.draft}
-                onChange={op.setDraft}
-                onSubmit={() => void op.submit()}
-                react={op.react}
-                onReactChange={op.setReact}
-                viewer={ctl.viewer}
-                posting={op.posting}
-                exhausted={op.budget?.exhausted}
-              />
+            <RailSection
+              title="Compose"
+              meta={op.locked ? "locked" : op.react ? "reactions on" : "reactions off"}
+              metaAccent={op.locked}
+            >
+              {op.locked ? (
+                <OperatorLock
+                  onUnlock={(secret) => void op.unlock(secret)}
+                  unlocking={op.unlocking}
+                  error={op.unlockError}
+                />
+              ) : (
+                <Composer
+                  value={op.draft}
+                  onChange={op.setDraft}
+                  onSubmit={() => void op.submit()}
+                  react={op.react}
+                  onReactChange={op.setReact}
+                  viewer={ctl.viewer}
+                  posting={op.posting}
+                  exhausted={op.budget?.exhausted}
+                />
+              )}
             </RailSection>
 
             <RailSection

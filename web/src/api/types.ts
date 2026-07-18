@@ -168,6 +168,16 @@ export interface LivePostResponse {
   budget: BudgetStatus;
 }
 
+/** Deployment shape: whether writes are gated, and whether reactions are on at all. */
+export interface AppConfig {
+  operator_required: boolean;
+  live_enabled: boolean;
+}
+
+export interface OperatorStatus {
+  unlocked: boolean;
+}
+
 export interface PostCreateRequest {
   handle: string;
   content: string;

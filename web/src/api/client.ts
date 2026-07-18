@@ -1,10 +1,16 @@
 // Typed fetch client for the ranking API. Base URL comes from VITE_API_BASE_URL
 // (set by the compose `web` service to follow API_PORT); defaults to :8000.
+//
+// In production the API serves this bundle itself, so the Docker build sets
+// VITE_API_BASE_URL to the empty string. "" is not nullish, so `??` does not fire and every
+// request goes out same-origin and relative.
 
 import type {
+  AppConfig,
   BudgetStatus,
   FeedResponse,
   LivePostResponse,
+  OperatorStatus,
   PipelineStageDoc,
   PostCreateRequest,
   Preferences,
@@ -13,6 +19,9 @@ import type {
 } from "./types";
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+
+/** Header carrying the Operator write secret; mirrors foryou.web.auth.OPERATOR_HEADER. */
+const OPERATOR_HEADER = "X-Operator-Secret";
 
 export class ApiError extends Error {
   constructor(
@@ -32,7 +41,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
     });
   } catch (cause) {
-    throw new ApiError(`Cannot reach the ranking API at ${BASE}. Is \`make api\` running?`, 0);
+    // BASE is "" in production (same-origin), where "is make api running" would be nonsense.
+    const where = BASE ? ` at ${BASE}` : "";
+    const hint = BASE ? " Is `make api` running?" : " The server may be starting up.";
+    throw new ApiError(`Cannot reach the ranking API${where}.${hint}`, 0);
   }
   if (!response.ok) {
     const detail = await response.json().catch(() => null);
@@ -71,14 +83,35 @@ export function fetchTrends(): Promise<TrendItem[]> {
   return request<TrendItem[]>("/api/trends");
 }
 
+export function fetchConfig(): Promise<AppConfig> {
+  return request<AppConfig>("/api/config");
+}
+
 // --- Live-trigger path (plan.md §8) ---
 
-/** Publish a post; the server may trigger a few budget-capped persona reactions. */
-export function createPost(body: PostCreateRequest): Promise<LivePostResponse> {
+/** The operator secret as a header, or nothing. `request` stays dumb: no module state. */
+function operatorHeaders(secret?: string | null): HeadersInit | undefined {
+  return secret ? { [OPERATOR_HEADER]: secret } : undefined;
+}
+
+/**
+ * Publish a post; the server may trigger a few budget-capped persona reactions.
+ * Throws ApiError(401) when the deployment gates writes and the secret is missing or wrong.
+ */
+export function createPost(
+  body: PostCreateRequest,
+  secret?: string | null,
+): Promise<LivePostResponse> {
   return request<LivePostResponse>("/api/posts", {
     method: "POST",
     body: JSON.stringify(body),
+    headers: { "content-type": "application/json", ...operatorHeaders(secret) },
   });
+}
+
+/** Validate a secret on its own, so a wrong one doesn't cost a post to discover. */
+export function unlockOperator(secret: string): Promise<OperatorStatus> {
+  return request<OperatorStatus>("/api/operator", { headers: operatorHeaders(secret) });
 }
 
 export function fetchBudget(): Promise<BudgetStatus> {

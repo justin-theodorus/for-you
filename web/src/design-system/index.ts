@@ -11,6 +11,7 @@ export { ActionScoreBars } from "./ActionScoreBars";
 export { BudgetMeter } from "./BudgetMeter";
 export { Composer } from "./Composer";
 export { FeedCard } from "./FeedCard";
+export { OperatorLock } from "./OperatorLock";
 export { ReaderFeedCard } from "./ReaderFeedCard";
 export { ReactionsPanel } from "./ReactionsPanel";
 export { WhyThisPostPanel } from "./WhyThisPostPanel";
