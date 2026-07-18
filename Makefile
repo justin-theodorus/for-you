@@ -13,7 +13,8 @@ ARGS ?=
 .DEFAULT_GOAL := help
 
 .PHONY: help setup build up down reset migrate revision migrate-check \
-	smoke seed personas simulate live embeddings centroids train feed api web test test-clean lint format typecheck check shell psql
+	smoke seed personas simulate live embeddings centroids train feed bootstrap api web \
+	deploy fly-bootstrap fly-logs test test-clean lint format typecheck check shell psql
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -77,6 +78,9 @@ train: ## Train the scoring model: make train ARGS="--negative-ratio 3 --users a
 feed: ## Rank a user's feed: make feed ARGS="--handle reader_0 --limit 20"
 	$(APP) python scripts/rank_feed.py $(ARGS)
 
+bootstrap: ## Seed+embed+centroids in one idempotent run (skips if a world exists); never trains
+	$(APP) python scripts/bootstrap.py $(ARGS)
+
 ## --- Web app (plan.md §9) ---
 
 api: ## Serve the ranking API at http://localhost:8000 (needs seed+embeddings+centroids+train)
@@ -84,6 +88,19 @@ api: ## Serve the ranking API at http://localhost:8000 (needs seed+embeddings+ce
 
 web: ## Serve the demo frontend at http://localhost:5173 (start `make api` first)
 	$(COMPOSE) up web
+
+## --- Deploy (Fly.io) ---
+## Secrets are set once with `fly secrets set` (see README); deliberately not a target —
+## a Makefile recipe would put the live OPENAI_API_KEY into your shell history.
+
+deploy: ## Build and deploy to Fly (runs `alembic upgrade head` as the release command)
+	fly deploy
+
+fly-bootstrap: ## One-off after the first deploy: seed+embed+centroids on Fly (idempotent)
+	fly ssh console -C "python scripts/bootstrap.py"
+
+fly-logs: ## Tail the deployed app's logs
+	fly logs
 
 ## --- Quality ---
 

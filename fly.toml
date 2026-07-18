@@ -1,0 +1,57 @@
+# Fly.io deployment for the For You demo (plan.md §9).
+#
+# One app, not two: the FastAPI process serves the built SPA as static files, so the whole
+# demo is same-origin. That means no CORS, no preflight allowance for X-Operator-Secret, one
+# cert, and one secret set. The cost is that the SPA isn't CDN-served, which a demo doesn't
+# feel. Nothing sensitive belongs in this file — it is committed. Secrets go via
+# `fly secrets set` (see README's Deploy section).
+
+app = "for-you-demo"
+primary_region = "iad"
+
+[build]
+  # REQUIRED. The Dockerfile's last stage is `dev` (it FROMs `final`, so it cannot come
+  # first), and an untargeted build takes the last stage — which would ship pytest, the
+  # training toolchain, and a `bash` CMD to production.
+  build-target = "final"
+
+[build.args]
+  # Empty, not unset: client.ts's `?? "http://localhost:8000"` must not fire, so the browser
+  # calls this same app relatively. Verified by grepping the built bundle (see README).
+  VITE_API_BASE_URL = ""
+
+[deploy]
+  # Migrations only. This runs on *every* deploy, which is right for something fast and
+  # idempotent that *should* block a bad release. The world bootstrap deliberately does not
+  # run here: a transient seed failure would block an unrelated code deploy, and it would
+  # re-pay the MiniLM load each time. It runs once, by hand: `make fly-bootstrap`.
+  release_command = "alembic upgrade head"
+
+[env]
+  # The corpus is fixed and public; only the write path costs money, and OPERATOR_SECRET
+  # (a real secret) gates that.
+  LIVE_ENABLED = "true"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_start_machines = true
+  # "suspend" resumes faster than a cold "stop" and keeps the resumed process's RSS, so a
+  # warm machine skips re-importing torch.
+  auto_stop_machines = "suspend"
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    path = "/api/health"
+    method = "GET"
+    interval = "30s"
+    timeout = "5s"
+    # The API imports its deps before it can answer; don't fail the machine while it boots.
+    grace_period = "20s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  # 2GB, not 1GB. MiniLM itself is small, but importing torch costs ~300MB RSS and only
+  # happens on the first publish — so an OOM would strike mid-request on the demo's most
+  # interesting path rather than at boot, where you'd see it.
+  memory = "2gb"
